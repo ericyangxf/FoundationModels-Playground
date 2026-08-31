@@ -27,6 +27,13 @@ struct DateReference {
 
     var todayString: String { Self.string(for: today) }
 
+    /// Midday today.
+    ///
+    /// SwiftyChronoX shifts the reference date it is handed by whole hours, so
+    /// starting from noon keeps a daylight-saving jump from tipping a result
+    /// into the day before.
+    var midday: Date { calendar.date(byAdding: .hour, value: 12, to: today) ?? today }
+
     /// The inclusive first and last day of the calendar period containing `date`.
     ///
     /// `DateInterval.end` is the first instant of the *next* period, so the last

@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var text = ""
 
     private static let examples = [
+        "Show my Starbucks spending in the past 40 days",
         "List my Starbucks transactions that above $10 from the beginning of this year",
         "How much I spent at Canadian Tire this month?",
         "Show Uber rides under $25 last week",
@@ -68,11 +69,64 @@ struct ContentView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        // The picker sits inside the bottom safe area, which puts it under the
+        // results and above whatever room the search bar has taken.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            EngineTabBar(selection: parser.engine) { engine in
+                parser.select(engine, rerunning: text)
+            }
+        }
     }
 
     private func search(_ query: String) {
         text = query
         parser.parse(query)
+    }
+}
+
+// MARK: - Engine picker
+
+/// The engine picker that sits between the results and the search bar.
+///
+/// Not a `TabView`: the system tab bar owns the very bottom of the screen, and
+/// this belongs above the search field rather than below it.
+private struct EngineTabBar: View {
+    let selection: QueryEngine
+    let onSelect: (QueryEngine) -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ForEach(QueryEngine.allCases) { engine in
+                tab(engine)
+            }
+        }
+        .animation(.snappy(duration: 0.2), value: selection)
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.bar)
+    }
+
+    private func tab(_ engine: QueryEngine) -> some View {
+        let isSelected = engine == selection
+        return Button {
+            onSelect(engine)
+        } label: {
+            Text(engine.title)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .foregroundStyle(isSelected ? Color.white : Color.blue)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(isSelected ? Color.blue : Color.white, in: .capsule)
+                .overlay {
+                    // The border is what tells the two states apart at a glance
+                    // once the fill goes white.
+                    Capsule().strokeBorder(Color.blue, lineWidth: isSelected ? 0 : 1.5)
+                }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -92,7 +146,7 @@ private struct ResultCard: View {
             field("Date", range(query.fromDate, query.toDate))
 
             if query.isEmpty {
-                Text("Nothing to filter on — the model found no merchant, amount, or date.")
+                Text("Nothing to filter on — no merchant, amount, or date was found.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -140,13 +194,15 @@ private struct ResultCard: View {
 
 // MARK: - Metrics
 
-/// What the round trip cost. Token counts are reported by the model itself.
+/// What the round trip cost. Token counts are reported by the model itself, so
+/// they cover the model's share of the work and nothing else — on the
+/// SwiftyChronoX run the shorter prompt is the point.
 private struct MetricsCard: View {
     let metrics: QueryParser.Metrics
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("On-device run")
+            Text(metrics.engine.runDescription)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
@@ -155,6 +211,12 @@ private struct MetricsCard: View {
                 stat("Input", "\(metrics.inputTokens) tok")
                 stat("Cached", "\(metrics.cachedInputTokens) tok")
                 stat("Output", "\(metrics.outputTokens) tok")
+            }
+
+            if let dateLatency = metrics.dateLatencyDescription {
+                Text(dateNote(dateLatency))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding()
@@ -167,6 +229,16 @@ private struct MetricsCard: View {
             Text(value).font(.callout.monospacedDigit().weight(.medium))
             Text(label).font(.caption2).foregroundStyle(.secondary)
         }
+    }
+
+    /// Says which half of the answer came from where, and what the library
+    /// keyed off — the phrase it matched is usually the thing worth arguing with.
+    private func dateNote(_ latency: String) -> String {
+        guard let phrase = metrics.datePhrase else {
+            return "SwiftyChronoX found no date in \(latency). Merchant and amount come from the model."
+        }
+        return "Dates from SwiftyChronoX in \(latency), matching \u{201C}\(phrase)\u{201D}. "
+            + "Merchant and amount come from the model."
     }
 }
 
