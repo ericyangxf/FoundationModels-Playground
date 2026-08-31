@@ -1,7 +1,7 @@
 import FoundationModels
 import SwiftUI
 
-struct ContentView: View {
+struct QueryView: View {
     @State private var parser = QueryParser()
     @State private var text = ""
 
@@ -17,15 +17,8 @@ struct ContentView: View {
         NavigationStack {
             content
                 .navigationTitle("Transaction Search")
-                .searchable(
-                    text: $text,
-                    placement: .automatic,
-                    prompt: "Ask about your spending"
-                )
-                .onSubmit(of: .search) { search(text) }
                 .onChange(of: text) { _, query in
-                    // Covers both the clear "x" and the cancel button, which
-                    // empty the field on their way out.
+                    // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         parser.reset()
                     }
@@ -56,7 +49,14 @@ struct ContentView: View {
                         .padding(.top, 60)
                 case .parsed(let query, let metrics):
                     ResultCard(query: query)
-                    MetricsCard(metrics: metrics)
+                    MetricsCard(
+                        title: metrics.engine.runDescription,
+                        latency: metrics.latencyDescription,
+                        inputTokens: metrics.inputTokens,
+                        cachedInputTokens: metrics.cachedInputTokens,
+                        outputTokens: metrics.outputTokens,
+                        footnote: metrics.dateNote
+                    )
                 case .failed(let message):
                     MessageCard(
                         icon: "exclamationmark.triangle",
@@ -69,12 +69,23 @@ struct ContentView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        // The picker sits inside the bottom safe area, which puts it under the
-        // results and above whatever room the search bar has taken.
+        .scrollDismissesKeyboard(.interactively)
+        // Picker and field both live in the bottom safe area, stacked under the
+        // results and above the tab bar.
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            EngineTabBar(selection: parser.engine) { engine in
-                parser.select(engine, rerunning: text)
+            VStack(spacing: 10) {
+                EngineTabBar(selection: parser.engine) { engine in
+                    parser.select(engine, rerunning: text)
+                }
+                QuerySearchField(
+                    prompt: "Ask about your spending",
+                    text: $text,
+                    onSubmit: search
+                )
             }
+            .padding(.horizontal)
+            .padding(.vertical, 10)
+            .background(.bar)
         }
     }
 
@@ -86,7 +97,7 @@ struct ContentView: View {
 
 // MARK: - Engine picker
 
-/// The engine picker that sits between the results and the search bar.
+/// The engine picker that sits between the results and the search field.
 ///
 /// Not a `TabView`: the system tab bar owns the very bottom of the screen, and
 /// this belongs above the search field rather than below it.
@@ -101,9 +112,6 @@ private struct EngineTabBar: View {
             }
         }
         .animation(.snappy(duration: 0.2), value: selection)
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(.bar)
     }
 
     private func tab(_ engine: QueryEngine) -> some View {
@@ -192,130 +200,6 @@ private struct ResultCard: View {
     }
 }
 
-// MARK: - Metrics
-
-/// What the round trip cost. Token counts are reported by the model itself, so
-/// they cover the model's share of the work and nothing else — on the
-/// SwiftyChronoX run the shorter prompt is the point.
-private struct MetricsCard: View {
-    let metrics: QueryParser.Metrics
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(metrics.engine.runDescription)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 20) {
-                stat("Latency", metrics.latencyDescription)
-                stat("Input", "\(metrics.inputTokens) tok")
-                stat("Cached", "\(metrics.cachedInputTokens) tok")
-                stat("Output", "\(metrics.outputTokens) tok")
-            }
-
-            if let dateLatency = metrics.dateLatencyDescription {
-                Text(dateNote(dateLatency))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.fill.quaternary, in: .rect(cornerRadius: 16))
-    }
-
-    private func stat(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value).font(.callout.monospacedDigit().weight(.medium))
-            Text(label).font(.caption2).foregroundStyle(.secondary)
-        }
-    }
-
-    /// Says which half of the answer came from where, and what the library
-    /// keyed off — the phrase it matched is usually the thing worth arguing with.
-    private func dateNote(_ latency: String) -> String {
-        guard let phrase = metrics.datePhrase else {
-            return "SwiftyChronoX found no date in \(latency). Merchant and amount come from the model."
-        }
-        return "Dates from SwiftyChronoX in \(latency), matching \u{201C}\(phrase)\u{201D}. "
-            + "Merchant and amount come from the model."
-    }
-}
-
-// MARK: - Empty and error states
-
-private struct ExampleList: View {
-    let examples: [String]
-    let onPick: (String) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Try one of these")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            ForEach(examples, id: \.self) { example in
-                Button {
-                    onPick(example)
-                } label: {
-                    Text(example)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.bordered)
-            }
-        }
-    }
-}
-
-private struct UnavailableView: View {
-    let reason: SystemLanguageModel.Availability.UnavailableReason
-
-    var body: some View {
-        MessageCard(
-            icon: "sparkles.slash",
-            tint: .secondary,
-            title: "Foundation Models unavailable",
-            message: explanation
-        )
-        .padding()
-    }
-
-    private var explanation: String {
-        switch reason {
-        case .deviceNotEligible:
-            "This device doesn't support Apple Intelligence."
-        case .appleIntelligenceNotEnabled:
-            "Turn on Apple Intelligence in Settings to use the on-device model."
-        case .modelNotReady:
-            "The model is still downloading. Try again in a few minutes."
-        @unknown default:
-            "The on-device model isn't available right now."
-        }
-    }
-}
-
-private struct MessageCard: View {
-    let icon: String
-    let tint: Color
-    let title: String
-    let message: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: icon)
-                .font(.headline)
-                .foregroundStyle(tint)
-            Text(message)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.fill.tertiary, in: .rect(cornerRadius: 16))
-    }
-}
-
 #Preview {
-    ContentView()
+    QueryView()
 }

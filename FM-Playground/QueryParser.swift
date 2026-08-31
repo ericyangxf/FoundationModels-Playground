@@ -28,18 +28,20 @@ final class QueryParser {
         /// The words SwiftyChronoX matched, when it matched any.
         var datePhrase: String?
 
-        var latencyDescription: String { Self.describe(latency) }
-        var dateLatencyDescription: String? { dateLatency.map(Self.describe) }
+        var latencyDescription: String { latency.latencyDescription }
+        var dateLatencyDescription: String? { dateLatency?.latencyDescription }
 
-        private static func describe(_ duration: Duration) -> String {
-            let parts = duration.components
-            let milliseconds = Double(parts.seconds) * 1000 + Double(parts.attoseconds) / 1e15
-            // Under a millisecond the whole number would read as "0 ms", which
-            // is the one case where the fraction is the interesting part.
-            if milliseconds < 1 { return String(format: "%.2f ms", milliseconds) }
-            return milliseconds < 1000
-                ? String(format: "%.0f ms", milliseconds)
-                : String(format: "%.2f s", milliseconds / 1000)
+        /// Says which half of the answer came from where, and what the library
+        /// keyed off — the phrase it matched is usually the thing worth arguing
+        /// with. Nil on the Foundation Models run, which has no second half.
+        var dateNote: String? {
+            guard let dateLatency = dateLatencyDescription else { return nil }
+            guard let datePhrase else {
+                return "SwiftyChronoX found no date in \(dateLatency). "
+                    + "Merchant and amount come from the model."
+            }
+            return "Dates from SwiftyChronoX in \(dateLatency), matching \u{201C}\(datePhrase)\u{201D}. "
+                + "Merchant and amount come from the model."
         }
     }
 
