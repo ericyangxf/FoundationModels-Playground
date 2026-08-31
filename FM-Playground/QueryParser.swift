@@ -32,7 +32,16 @@ final class QueryParser {
 
     private(set) var phase: Phase = .idle
 
-    private let model = SystemLanguageModel.default
+    /// The most permissive guardrails Apple exposes.
+    ///
+    /// Spending questions trip the default filter more often than you'd expect —
+    /// a merchant name alone can read as sensitive out of context — and a refusal
+    /// here is a false positive, since the input is the user's own text being
+    /// reshaped into filters rather than anything the model is asked to author.
+    private let model = SystemLanguageModel(
+        useCase: .general,
+        guardrails: .permissiveContentTransformations
+    )
 
     /// A session built and warmed ahead of the next question.
     ///
