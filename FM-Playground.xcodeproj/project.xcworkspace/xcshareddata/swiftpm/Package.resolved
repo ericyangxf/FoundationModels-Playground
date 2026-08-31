@@ -1,0 +1,15 @@
+{
+  "originHash" : "a9bc57d2ae4aa81df6d3d5dffd2d763d7b535dc2044f56fe448088f54db5cd9d",
+  "pins" : [
+    {
+      "identity" : "swiftychronox",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:ericyangxf/SwiftyChronoX.git",
+      "state" : {
+        "revision" : "ee4962273795c866c6ef1814ea8b3fe1bcf83ca3",
+        "version" : "2.3.0"
+      }
+    }
+  ],
+  "version" : 3
+}
