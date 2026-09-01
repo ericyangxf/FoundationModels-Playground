@@ -5,11 +5,15 @@ struct QueryView: View {
     @State private var parser = QueryParser()
     @State private var text = ""
 
-    private static let examples = [
+    /// The questions the idle screen offers, and the same list the accuracy
+    /// tests run against — not private so the tests can't drift from it.
+    static let examples = [
         "List my Starbucks transactions that above $10 from the beginning of this year",
         "How much I spent at Canadian Tire this month?",
         "Show Uber rides under $25 last week",
         "Amazon purchases between $50 and $200 last year",
+        "How much I spent on grocery in this year?",
+        "Flights and hotels over $500 last year",
         "Show my Starbucks spending in the past 40 days"
     ]
 
@@ -47,16 +51,27 @@ struct QueryView: View {
                     ProgressView("Parsing…")
                         .frame(maxWidth: .infinity)
                         .padding(.top, 60)
-                case .parsed(let query, let metrics):
-                    ResultCard(query: query)
+                case .parsed(let result, let metrics):
+                    ResultCard(result: result)
                     MetricsCard(
                         title: metrics.engine.runDescription,
                         latency: metrics.latencyDescription,
                         inputTokens: metrics.inputTokens,
                         cachedInputTokens: metrics.cachedInputTokens,
                         outputTokens: metrics.outputTokens,
-                        footnote: metrics.dateNote
+                        footnote: metrics.footnote
                     )
+                    if let categoryRun = metrics.categoryRun {
+                        MetricsCard(
+                            title: "Category session run",
+                            latency: categoryRun.latencyDescription,
+                            inputTokens: categoryRun.inputTokens,
+                            cachedInputTokens: categoryRun.cachedInputTokens,
+                            outputTokens: categoryRun.outputTokens,
+                            footnote: "A second session matched the question against "
+                                + "the category list, in parallel with the run above."
+                        )
+                    }
                 case .failed(let message):
                     MessageCard(
                         icon: "exclamationmark.triangle",
@@ -142,19 +157,22 @@ private struct EngineTabBar: View {
 
 /// The parsed filters, laid out one field per line.
 private struct ResultCard: View {
-    let query: TransactionQuery
+    let result: ParsedQuery
+
+    private var query: TransactionQuery { result.filters }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             field("Merchant Name", value(query.merchantName))
+            field("Category", categories)
             field("Amount", range(
                 Self.dollars(query.fromAmount),
                 Self.dollars(query.toAmount)
             ))
             field("Date", range(query.fromDate, query.toDate))
 
-            if query.isEmpty {
-                Text("Nothing to filter on — no merchant, amount, or date was found.")
+            if result.isEmpty {
+                Text("Nothing to filter on — no merchant, category, amount, or date was found.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -189,6 +207,21 @@ private struct ResultCard: View {
             return Text("nil").foregroundStyle(.tertiary)
         }
         return Text(string)
+    }
+
+    /// Each matched category with the code ranges the back-end will get,
+    /// one per line, or a literal `nil` when the question named none.
+    @ViewBuilder
+    private var categories: some View {
+        if result.categories.isEmpty {
+            Text("nil").foregroundStyle(.tertiary)
+        } else {
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(result.categories, id: \.self) { category in
+                    Text(category.summary)
+                }
+            }
+        }
     }
 
     private func range(_ from: String?, _ to: String?) -> some View {

@@ -10,14 +10,30 @@
 		F5CFE11330462EC900C51936 /* SwiftyChronoX in Frameworks */ = {isa = PBXBuildFile; productRef = F5CFE11230462EC900C51936 /* SwiftyChronoX */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F5AA000000000000000000A0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000100000000;
+			remoteInfo = "FM-Playground";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* FM-Playground.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FM-Playground.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5AA00000000000000000020 /* FM-PlaygroundTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "FM-PlaygroundTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* FM-Playground */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "FM-Playground";
+			sourceTree = "<group>";
+		};
+		F5AA00000000000000000010 /* FM-PlaygroundTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "FM-PlaygroundTests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -29,6 +45,11 @@
 				F5CFE11330462EC900C51936 /* SwiftyChronoX in Frameworks */,
 			);
 		};
+		F5AA00000000000000000050 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -36,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* FM-Playground */,
+				F5AA00000000000000000010 /* FM-PlaygroundTests */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -44,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* FM-Playground.app */,
+				F5AA00000000000000000020 /* FM-PlaygroundTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -72,6 +95,27 @@
 			productReference = 000000000000000000000120 /* FM-Playground.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F5AA00000000000000000030 /* FM-PlaygroundTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5AA00000000000000000070 /* Build configuration list for PBXNativeTarget "FM-PlaygroundTests" */;
+			buildPhases = (
+				F5AA00000000000000000040 /* Sources */,
+				F5AA00000000000000000050 /* Frameworks */,
+				F5AA00000000000000000060 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F5AA000000000000000000B0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F5AA00000000000000000010 /* FM-PlaygroundTests */,
+			);
+			name = "FM-PlaygroundTests";
+			productName = "FM-PlaygroundTests";
+			productReference = F5AA00000000000000000020 /* FM-PlaygroundTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -84,6 +128,9 @@
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					F5AA00000000000000000030 = {
+						TestTargetID = 000000000000000100000000;
 					};
 				};
 			};
@@ -105,12 +152,18 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* FM-Playground */,
+				F5AA00000000000000000030 /* FM-PlaygroundTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		000000000000000140000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		F5AA00000000000000000060 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -123,7 +176,20 @@
 			files = (
 			);
 		};
+		F5AA00000000000000000040 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F5AA000000000000000000B0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000100000000 /* FM-Playground */;
+			targetProxy = F5AA000000000000000000A0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "FM-Playground" */ = {
@@ -334,6 +400,60 @@
 			};
 			name = Release;
 		};
+		F5AA00000000000000000080 /* Debug configuration for PBXNativeTarget "FM-PlaygroundTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5BDBW57Q93;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FM-Playground.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FM-Playground";
+			};
+			name = Debug;
+		};
+		F5AA00000000000000000090 /* Release configuration for PBXNativeTarget "FM-PlaygroundTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5BDBW57Q93;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FM-Playground.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FM-Playground";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -350,6 +470,14 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug configuration for PBXNativeTarget "FM-Playground" */,
 				000000000000000112000000 /* Release configuration for PBXNativeTarget "FM-Playground" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		F5AA00000000000000000070 /* Build configuration list for PBXNativeTarget "FM-PlaygroundTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5AA00000000000000000080 /* Debug configuration for PBXNativeTarget "FM-PlaygroundTests" */,
+				F5AA00000000000000000090 /* Release configuration for PBXNativeTarget "FM-PlaygroundTests" */,
 			);
 			defaultConfigurationName = Release;
 		};
