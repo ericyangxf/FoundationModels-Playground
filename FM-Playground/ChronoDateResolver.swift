@@ -1,7 +1,7 @@
 import Foundation
 import SwiftyChronoX
 
-/// Reads the date range out of a question with SwiftyChronoX instead of the model.
+/// Reads the date range out of a question with SwiftyChronoX.
 ///
 /// SwiftyChronoX matches the phrase and does the calendar arithmetic in one
 /// step, so an open-ended window like "the past 40 days" resolves as readily as

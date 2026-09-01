@@ -6,11 +6,11 @@ struct QueryView: View {
     @State private var text = ""
 
     private static let examples = [
-        "Show my Starbucks spending in the past 40 days",
         "List my Starbucks transactions that above $10 from the beginning of this year",
         "How much I spent at Canadian Tire this month?",
         "Show Uber rides under $25 last week",
-        "Amazon purchases between $50 and $200 last year"
+        "Amazon purchases between $50 and $200 last year",
+        "Show my Starbucks spending in the past 40 days"
     ]
 
     var body: some View {

@@ -46,7 +46,7 @@ final class QueryParser {
     }
 
     private(set) var phase: Phase = .idle
-    private(set) var engine: QueryEngine = .foundationModels
+    private(set) var engine: QueryEngine = .swiftyChronoX
 
     /// The most permissive guardrails Apple exposes.
     ///
