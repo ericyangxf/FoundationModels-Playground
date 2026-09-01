@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:ericyangxf/SwiftyChronoX.git",
       "state" : {
-        "revision" : "ee4962273795c866c6ef1814ea8b3fe1bcf83ca3",
-        "version" : "2.3.0"
+        "revision" : "a3f54cf6caa9de478efc1eb68d5dd157ce77bba7",
+        "version" : "2.4.0"
       }
     }
   ],
