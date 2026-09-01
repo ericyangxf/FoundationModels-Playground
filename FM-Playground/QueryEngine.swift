@@ -18,12 +18,4 @@ enum QueryEngine: String, CaseIterable, Identifiable, Sendable {
         case .foundationModels: "Foundation Models"
         }
     }
-
-    /// The heading over the run's numbers.
-    var runDescription: String {
-        switch self {
-        case .swiftyChronoX: "SwiftyChronoX run"
-        case .foundationModels: "Foundation Models run"
-        }
-    }
 }

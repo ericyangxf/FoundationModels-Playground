@@ -14,7 +14,7 @@ struct QueryView: View {
         "Amazon purchases between $50 and $200 last year",
         "How much I spent on grocery in this year?",
         "Flights and hotels over $500 last year",
-        "Show my Starbucks spending in the past 40 days"
+        "Public transit spending in the past 40 days"
     ]
 
     var body: some View {
@@ -54,7 +54,7 @@ struct QueryView: View {
                 case .parsed(let result, let metrics):
                     ResultCard(result: result)
                     MetricsCard(
-                        title: metrics.engine.runDescription,
+                        title: "Inquery parsing session run",
                         latency: metrics.latencyDescription,
                         inputTokens: metrics.inputTokens,
                         cachedInputTokens: metrics.cachedInputTokens,
