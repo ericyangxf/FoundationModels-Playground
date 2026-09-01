@@ -71,7 +71,6 @@ final class QueryParser {
     )
 
     private let chrono = ChronoDateResolver()
-    private var chronoIsWarm = false
 
     /// A session built and warmed ahead of the next question.
     ///
@@ -102,11 +101,6 @@ final class QueryParser {
     /// Builds and warms what the next question will need, if it isn't warm already.
     func prewarm() {
         guard model.isAvailable else { return }
-
-        if engine == .swiftyChronoX && !chronoIsWarm {
-            chrono.warmUp()
-            chronoIsWarm = true
-        }
 
         if categoryReady == nil {
             let session = LanguageModelSession(

@@ -26,12 +26,6 @@ struct ChronoDateResolver {
 
     private let chrono = Chrono(preferredLanguage: .english)
 
-    /// Compiles the parsers' expressions so the first real question doesn't pay
-    /// for them — the same reason the model session gets prewarmed.
-    func warmUp() {
-        _ = chrono.parse(text: "last week", refDate: .now, opt: Self.options)
-    }
-
     func resolve(_ text: String, reference: DateReference) -> Resolution {
         // Results come back sorted by where they appear in the sentence, and the
         // range refiners have already merged "from X to Y" into a single one, so
