@@ -486,7 +486,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		F5CFE11130462EC900C51936 /* XCRemoteSwiftPackageReference "SwiftyChronoX" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:ericyangxf/SwiftyChronoX.git";
+			repositoryURL = "https://github.com/ericyangxf/SwiftyChronoX.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.4.0;

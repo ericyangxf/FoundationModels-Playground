@@ -1,10 +1,10 @@
 {
-  "originHash" : "a9bc57d2ae4aa81df6d3d5dffd2d763d7b535dc2044f56fe448088f54db5cd9d",
+  "originHash" : "e7a75eb4ca4e265558fa5398f8c7215e94b2f00aba8e3366bb7525d03c1c3708",
   "pins" : [
     {
       "identity" : "swiftychronox",
       "kind" : "remoteSourceControl",
-      "location" : "git@github.com:ericyangxf/SwiftyChronoX.git",
+      "location" : "https://github.com/ericyangxf/SwiftyChronoX.git",
       "state" : {
         "revision" : "a3f54cf6caa9de478efc1eb68d5dd157ce77bba7",
         "version" : "2.4.0"
