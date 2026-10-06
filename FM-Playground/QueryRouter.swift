@@ -50,6 +50,10 @@ final class QueryRouter {
 
     var availability: SystemLanguageModel.Availability { model.availability }
 
+    /// The user-facing name of the on-device model behind this page, such as
+    /// "AFM 3 Core Advanced".
+    var modelName: String { model.variant.displayName }
+
     func prewarm() {
         guard model.isAvailable, ready == nil else { return }
 

@@ -21,6 +21,7 @@ struct QueryView: View {
         NavigationStack {
             content
                 .navigationTitle("Transaction Search")
+                .modelStatus(parser.availability, modelName: parser.modelName)
                 .onChange(of: text) { _, query in
                     // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

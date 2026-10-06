@@ -128,6 +128,23 @@ struct ExampleList: View {
     }
 }
 
+// MARK: - Model status
+
+extension View {
+    /// Puts the on-device model's status under the navigation title: a green
+    /// light and the model's name when it can run, a red light when it can't.
+    ///
+    /// The lights are emoji because the subtitle renders plain text only — it
+    /// drops images and colour.
+    func modelStatus(_ availability: SystemLanguageModel.Availability, modelName: String) -> some View {
+        navigationSubtitle(
+            availability == .available
+                ? "🟢 \(modelName)"
+                : "🔴 Foundation Model unavailable"
+        )
+    }
+}
+
 struct UnavailableView: View {
     let reason: SystemLanguageModel.Availability.UnavailableReason
 

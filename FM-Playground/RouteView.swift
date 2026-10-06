@@ -19,6 +19,7 @@ struct RouteView: View {
         NavigationStack {
             content
                 .navigationTitle("Route")
+                .modelStatus(router.availability, modelName: router.modelName)
                 .onChange(of: text) { _, query in
                     // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
