@@ -1,0 +1,2006 @@
+{
+  "asOf": "2026-10-06",
+  "currency": "CAD",
+  "transactions": [
+    {
+      "id": "TXN-0001",
+      "date": "2025-10-08",
+      "merchant": "Tim Hortons",
+      "amount": 4.17,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0002",
+      "date": "2025-10-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0003",
+      "date": "2025-10-17",
+      "merchant": "Apple Store",
+      "amount": 94.78,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5732
+    },
+    {
+      "id": "TXN-0004",
+      "date": "2025-10-22",
+      "merchant": "The Keg",
+      "amount": 170.79,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0005",
+      "date": "2025-10-23",
+      "merchant": "Tim Hortons",
+      "amount": 8.75,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0006",
+      "date": "2025-10-26",
+      "merchant": "Shell",
+      "amount": 61.06,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0007",
+      "date": "2025-10-28",
+      "merchant": "Starbucks",
+      "amount": 6.2,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0008",
+      "date": "2025-10-29",
+      "merchant": "Shoppers Drug Mart",
+      "amount": 18.59,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5912
+    },
+    {
+      "id": "TXN-0009",
+      "date": "2025-10-31",
+      "merchant": "Winners",
+      "amount": 84.25,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5651
+    },
+    {
+      "id": "TXN-0010",
+      "date": "2025-11-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0011",
+      "date": "2025-11-02",
+      "merchant": "Loblaws",
+      "amount": 59.96,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0012",
+      "date": "2025-11-02",
+      "merchant": "Petro-Canada",
+      "amount": 69.1,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0013",
+      "date": "2025-11-03",
+      "merchant": "Rogers",
+      "amount": 92.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0014",
+      "date": "2025-11-05",
+      "merchant": "T&T Supermarket",
+      "amount": 51.58,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0015",
+      "date": "2025-11-07",
+      "merchant": "Sobeys",
+      "amount": 68.45,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0016",
+      "date": "2025-11-08",
+      "merchant": "Amazon",
+      "amount": 86.98,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0017",
+      "date": "2025-11-08",
+      "merchant": "Starbucks",
+      "amount": 8.14,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0018",
+      "date": "2025-11-09",
+      "merchant": "Lululemon",
+      "amount": 99.82,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5655
+    },
+    {
+      "id": "TXN-0019",
+      "date": "2025-11-09",
+      "merchant": "Metro",
+      "amount": 54.25,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0020",
+      "date": "2025-11-12",
+      "merchant": "Presto",
+      "amount": 49.19,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0021",
+      "date": "2025-11-13",
+      "merchant": "Winners",
+      "amount": 74.48,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5651
+    },
+    {
+      "id": "TXN-0022",
+      "date": "2025-11-14",
+      "merchant": "Uber",
+      "amount": 12.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0023",
+      "date": "2025-11-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0024",
+      "date": "2025-11-16",
+      "merchant": "Presto",
+      "amount": 44.43,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0025",
+      "date": "2025-11-16",
+      "merchant": "Starbucks",
+      "amount": 7.53,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0026",
+      "date": "2025-11-26",
+      "merchant": "Uber",
+      "amount": 12.7,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0027",
+      "date": "2025-11-28",
+      "merchant": "McDonald's",
+      "amount": 10.49,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0028",
+      "date": "2025-11-28",
+      "merchant": "WestJet",
+      "amount": 538.17,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4511
+    },
+    {
+      "id": "TXN-0029",
+      "date": "2025-11-29",
+      "merchant": "Ticketmaster",
+      "amount": 220.03,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7922
+    },
+    {
+      "id": "TXN-0030",
+      "date": "2025-12-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0031",
+      "date": "2025-12-03",
+      "merchant": "Rogers",
+      "amount": 92.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0032",
+      "date": "2025-12-11",
+      "merchant": "Uber",
+      "amount": 29.96,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0033",
+      "date": "2025-12-14",
+      "merchant": "PetSmart",
+      "amount": 46.11,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5995
+    },
+    {
+      "id": "TXN-0034",
+      "date": "2025-12-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0035",
+      "date": "2025-12-16",
+      "merchant": "Petro-Canada",
+      "amount": 67.92,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0036",
+      "date": "2025-12-16",
+      "merchant": "Starbucks",
+      "amount": 15.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0037",
+      "date": "2025-12-16",
+      "merchant": "Uber",
+      "amount": 33.01,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0038",
+      "date": "2025-12-18",
+      "merchant": "Enterprise Rent-A-Car",
+      "amount": 287.45,
+      "city": "Calgary",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 3405
+    },
+    {
+      "id": "TXN-0039",
+      "date": "2025-12-18",
+      "merchant": "Uber",
+      "amount": 41.86,
+      "city": "Calgary",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0040",
+      "date": "2025-12-19",
+      "merchant": "Fairmont",
+      "amount": 1486.2,
+      "city": "Banff",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 3590
+    },
+    {
+      "id": "TXN-0041",
+      "date": "2025-12-19",
+      "merchant": "Petro-Canada",
+      "amount": 71.32,
+      "city": "Calgary",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0042",
+      "date": "2025-12-20",
+      "merchant": "Tim Hortons",
+      "amount": 9.85,
+      "city": "Banff",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0043",
+      "date": "2025-12-21",
+      "merchant": "The Keg",
+      "amount": 186.4,
+      "city": "Banff",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0044",
+      "date": "2025-12-22",
+      "merchant": "DoorDash",
+      "amount": 51.31,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0045",
+      "date": "2025-12-22",
+      "merchant": "Starbucks",
+      "amount": 12.65,
+      "city": "Banff",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0046",
+      "date": "2025-12-23",
+      "merchant": "Loblaws",
+      "amount": 81.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0047",
+      "date": "2025-12-23",
+      "merchant": "WestJet",
+      "amount": 64.0,
+      "city": "Calgary",
+      "province": "Alberta",
+      "country": "Canada",
+      "mcc": 4511
+    },
+    {
+      "id": "TXN-0048",
+      "date": "2025-12-28",
+      "merchant": "Cactus Club Cafe",
+      "amount": 70.48,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0049",
+      "date": "2025-12-28",
+      "merchant": "Sport Chek",
+      "amount": 41.43,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5941
+    },
+    {
+      "id": "TXN-0050",
+      "date": "2025-12-30",
+      "merchant": "Apple Store",
+      "amount": 293.45,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5732
+    },
+    {
+      "id": "TXN-0051",
+      "date": "2026-01-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0052",
+      "date": "2026-01-02",
+      "merchant": "Sobeys",
+      "amount": 51.44,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0053",
+      "date": "2026-01-03",
+      "merchant": "Rogers",
+      "amount": 92.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0054",
+      "date": "2026-01-11",
+      "merchant": "Amazon",
+      "amount": 103.78,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0055",
+      "date": "2026-01-12",
+      "merchant": "Tim Hortons",
+      "amount": 5.55,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0056",
+      "date": "2026-01-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0057",
+      "date": "2026-01-28",
+      "merchant": "IKEA",
+      "amount": 222.58,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5712
+    },
+    {
+      "id": "TXN-0058",
+      "date": "2026-01-31",
+      "merchant": "Esso",
+      "amount": 62.61,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0059",
+      "date": "2026-01-31",
+      "merchant": "SkipTheDishes",
+      "amount": 24.37,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0060",
+      "date": "2026-02-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0061",
+      "date": "2026-02-03",
+      "merchant": "Air Canada",
+      "amount": 684.21,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 3009
+    },
+    {
+      "id": "TXN-0062",
+      "date": "2026-02-03",
+      "merchant": "Rogers",
+      "amount": 92.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0063",
+      "date": "2026-02-07",
+      "merchant": "Indigo",
+      "amount": 41.01,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5942
+    },
+    {
+      "id": "TXN-0064",
+      "date": "2026-02-12",
+      "merchant": "Cactus Club Cafe",
+      "amount": 96.55,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0065",
+      "date": "2026-02-12",
+      "merchant": "Hilton",
+      "amount": 742.18,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 3504
+    },
+    {
+      "id": "TXN-0066",
+      "date": "2026-02-12",
+      "merchant": "Uber",
+      "amount": 38.74,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0067",
+      "date": "2026-02-13",
+      "merchant": "Lyft",
+      "amount": 22.31,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0068",
+      "date": "2026-02-13",
+      "merchant": "Starbucks",
+      "amount": 8.4,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0069",
+      "date": "2026-02-13",
+      "merchant": "TransLink",
+      "amount": 11.25,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0070",
+      "date": "2026-02-14",
+      "merchant": "Cactus Club Cafe",
+      "amount": 142.8,
+      "city": "Whistler",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0071",
+      "date": "2026-02-14",
+      "merchant": "Costco",
+      "amount": 284.6,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5300
+    },
+    {
+      "id": "TXN-0072",
+      "date": "2026-02-14",
+      "merchant": "Save-On-Foods",
+      "amount": 46.12,
+      "city": "Whistler",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0073",
+      "date": "2026-02-15",
+      "merchant": "Lyft",
+      "amount": 27.66,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0074",
+      "date": "2026-02-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0075",
+      "date": "2026-02-15",
+      "merchant": "Save-On-Foods",
+      "amount": 23.87,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0076",
+      "date": "2026-02-15",
+      "merchant": "TransLink",
+      "amount": 11.25,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0077",
+      "date": "2026-02-16",
+      "merchant": "Air Canada",
+      "amount": 58.0,
+      "city": "Vancouver",
+      "province": "British Columbia",
+      "country": "Canada",
+      "mcc": 3009
+    },
+    {
+      "id": "TXN-0078",
+      "date": "2026-02-19",
+      "merchant": "Loblaws",
+      "amount": 106.62,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0079",
+      "date": "2026-02-19",
+      "merchant": "No Frills",
+      "amount": 44.22,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0080",
+      "date": "2026-03-01",
+      "merchant": "Costco",
+      "amount": 207.6,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5300
+    },
+    {
+      "id": "TXN-0081",
+      "date": "2026-03-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0082",
+      "date": "2026-03-01",
+      "merchant": "Walmart",
+      "amount": 40.09,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5311
+    },
+    {
+      "id": "TXN-0083",
+      "date": "2026-03-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0084",
+      "date": "2026-03-09",
+      "merchant": "Costco",
+      "amount": 192.19,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5300
+    },
+    {
+      "id": "TXN-0085",
+      "date": "2026-03-10",
+      "merchant": "Amazon",
+      "amount": 130.53,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0086",
+      "date": "2026-03-11",
+      "merchant": "Shoppers Drug Mart",
+      "amount": 36.48,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5912
+    },
+    {
+      "id": "TXN-0087",
+      "date": "2026-03-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0088",
+      "date": "2026-03-20",
+      "merchant": "Indigo",
+      "amount": 59.6,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5942
+    },
+    {
+      "id": "TXN-0089",
+      "date": "2026-03-22",
+      "merchant": "Uber",
+      "amount": 22.04,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0090",
+      "date": "2026-03-24",
+      "merchant": "Starbucks",
+      "amount": 13.97,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0091",
+      "date": "2026-03-26",
+      "merchant": "DoorDash",
+      "amount": 61.83,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0092",
+      "date": "2026-03-27",
+      "merchant": "T&T Supermarket",
+      "amount": 48.3,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0093",
+      "date": "2026-03-28",
+      "merchant": "Esso",
+      "amount": 60.25,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0094",
+      "date": "2026-04-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0095",
+      "date": "2026-04-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0096",
+      "date": "2026-04-04",
+      "merchant": "Petro-Canada",
+      "amount": 52.31,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0097",
+      "date": "2026-04-05",
+      "merchant": "Tim Hortons",
+      "amount": 10.91,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0098",
+      "date": "2026-04-07",
+      "merchant": "No Frills",
+      "amount": 100.3,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0099",
+      "date": "2026-04-09",
+      "merchant": "No Frills",
+      "amount": 42.56,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0100",
+      "date": "2026-04-10",
+      "merchant": "Amazon",
+      "amount": 122.53,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0101",
+      "date": "2026-04-13",
+      "merchant": "McDonald's",
+      "amount": 19.84,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0102",
+      "date": "2026-04-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0103",
+      "date": "2026-04-16",
+      "merchant": "Best Buy",
+      "amount": 390.04,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5732
+    },
+    {
+      "id": "TXN-0104",
+      "date": "2026-04-19",
+      "merchant": "Lululemon",
+      "amount": 129.16,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5655
+    },
+    {
+      "id": "TXN-0105",
+      "date": "2026-04-20",
+      "merchant": "Sephora",
+      "amount": 105.25,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5977
+    },
+    {
+      "id": "TXN-0106",
+      "date": "2026-04-20",
+      "merchant": "Starbucks",
+      "amount": 6.3,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0107",
+      "date": "2026-04-25",
+      "merchant": "Shell",
+      "amount": 60.54,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0108",
+      "date": "2026-04-25",
+      "merchant": "Sport Chek",
+      "amount": 158.3,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5941
+    },
+    {
+      "id": "TXN-0109",
+      "date": "2026-04-30",
+      "merchant": "Shoppers Drug Mart",
+      "amount": 76.59,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5912
+    },
+    {
+      "id": "TXN-0110",
+      "date": "2026-05-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0111",
+      "date": "2026-05-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0112",
+      "date": "2026-05-05",
+      "merchant": "Tim Hortons",
+      "amount": 10.95,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0113",
+      "date": "2026-05-12",
+      "merchant": "Presto",
+      "amount": 50.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0114",
+      "date": "2026-05-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0115",
+      "date": "2026-05-17",
+      "merchant": "Shoppers Drug Mart",
+      "amount": 33.16,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5912
+    },
+    {
+      "id": "TXN-0116",
+      "date": "2026-05-18",
+      "merchant": "DoorDash",
+      "amount": 54.58,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0117",
+      "date": "2026-05-19",
+      "merchant": "Metro",
+      "amount": 107.88,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0118",
+      "date": "2026-05-22",
+      "merchant": "Canadian Tire",
+      "amount": 83.43,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5531
+    },
+    {
+      "id": "TXN-0119",
+      "date": "2026-05-22",
+      "merchant": "Home Depot",
+      "amount": 241.92,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5200
+    },
+    {
+      "id": "TXN-0120",
+      "date": "2026-05-22",
+      "merchant": "IKEA",
+      "amount": 409.09,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5712
+    },
+    {
+      "id": "TXN-0121",
+      "date": "2026-05-22",
+      "merchant": "Lyft",
+      "amount": 16.84,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0122",
+      "date": "2026-05-30",
+      "merchant": "Loblaws",
+      "amount": 127.86,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0123",
+      "date": "2026-06-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0124",
+      "date": "2026-06-03",
+      "merchant": "Boston Pizza",
+      "amount": 44.62,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0125",
+      "date": "2026-06-03",
+      "merchant": "Metro",
+      "amount": 58.51,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0126",
+      "date": "2026-06-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0127",
+      "date": "2026-06-08",
+      "merchant": "Walmart",
+      "amount": 74.54,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5311
+    },
+    {
+      "id": "TXN-0128",
+      "date": "2026-06-10",
+      "merchant": "Uber",
+      "amount": 22.26,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0129",
+      "date": "2026-06-14",
+      "merchant": "T&T Supermarket",
+      "amount": 61.34,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0130",
+      "date": "2026-06-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0131",
+      "date": "2026-06-27",
+      "merchant": "LCBO",
+      "amount": 42.8,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5921
+    },
+    {
+      "id": "TXN-0132",
+      "date": "2026-07-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0133",
+      "date": "2026-07-02",
+      "merchant": "Esso",
+      "amount": 48.52,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0134",
+      "date": "2026-07-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0135",
+      "date": "2026-07-04",
+      "merchant": "Amazon",
+      "amount": 121.15,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0136",
+      "date": "2026-07-04",
+      "merchant": "Uber",
+      "amount": 15.83,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0137",
+      "date": "2026-07-05",
+      "merchant": "Green P Parking",
+      "amount": 27.21,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7523
+    },
+    {
+      "id": "TXN-0138",
+      "date": "2026-07-05",
+      "merchant": "Loblaws",
+      "amount": 48.78,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0139",
+      "date": "2026-07-08",
+      "merchant": "VIA Rail",
+      "amount": 164.3,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4112
+    },
+    {
+      "id": "TXN-0140",
+      "date": "2026-07-09",
+      "merchant": "Marriott",
+      "amount": 689.4,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 3509
+    },
+    {
+      "id": "TXN-0141",
+      "date": "2026-07-09",
+      "merchant": "STM",
+      "amount": 14.5,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0142",
+      "date": "2026-07-10",
+      "merchant": "Canadian Tire",
+      "amount": 56.05,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5531
+    },
+    {
+      "id": "TXN-0143",
+      "date": "2026-07-10",
+      "merchant": "SAQ",
+      "amount": 54.75,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 5921
+    },
+    {
+      "id": "TXN-0144",
+      "date": "2026-07-10",
+      "merchant": "Uber",
+      "amount": 26.93,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0145",
+      "date": "2026-07-11",
+      "merchant": "IGA",
+      "amount": 38.62,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0146",
+      "date": "2026-07-11",
+      "merchant": "STM",
+      "amount": 14.5,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0147",
+      "date": "2026-07-12",
+      "merchant": "Ticketmaster",
+      "amount": 104.21,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7922
+    },
+    {
+      "id": "TXN-0148",
+      "date": "2026-07-12",
+      "merchant": "Tim Hortons",
+      "amount": 7.35,
+      "city": "Quebec City",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0149",
+      "date": "2026-07-13",
+      "merchant": "VIA Rail",
+      "amount": 158.9,
+      "city": "Montreal",
+      "province": "Quebec",
+      "country": "Canada",
+      "mcc": 4112
+    },
+    {
+      "id": "TXN-0150",
+      "date": "2026-07-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0151",
+      "date": "2026-07-18",
+      "merchant": "Canadian Red Cross",
+      "amount": 98.78,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 8398
+    },
+    {
+      "id": "TXN-0152",
+      "date": "2026-07-19",
+      "merchant": "Canadian Tire",
+      "amount": 122.53,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5531
+    },
+    {
+      "id": "TXN-0153",
+      "date": "2026-07-22",
+      "merchant": "Uber",
+      "amount": 13.95,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0154",
+      "date": "2026-07-27",
+      "merchant": "Loblaws",
+      "amount": 110.98,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0155",
+      "date": "2026-07-27",
+      "merchant": "PetSmart",
+      "amount": 85.18,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5995
+    },
+    {
+      "id": "TXN-0156",
+      "date": "2026-07-31",
+      "merchant": "Home Depot",
+      "amount": 169.45,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5200
+    },
+    {
+      "id": "TXN-0157",
+      "date": "2026-08-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0158",
+      "date": "2026-08-02",
+      "merchant": "Walmart",
+      "amount": 20.29,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5311
+    },
+    {
+      "id": "TXN-0159",
+      "date": "2026-08-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0160",
+      "date": "2026-08-05",
+      "merchant": "Porter Airlines",
+      "amount": 329.44,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4511
+    },
+    {
+      "id": "TXN-0161",
+      "date": "2026-08-06",
+      "merchant": "Dollarama",
+      "amount": 4.21,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5331
+    },
+    {
+      "id": "TXN-0162",
+      "date": "2026-08-12",
+      "merchant": "Cineplex",
+      "amount": 44.44,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7832
+    },
+    {
+      "id": "TXN-0163",
+      "date": "2026-08-12",
+      "merchant": "McDonald's",
+      "amount": 19.37,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0164",
+      "date": "2026-08-14",
+      "merchant": "LCBO",
+      "amount": 65.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5921
+    },
+    {
+      "id": "TXN-0165",
+      "date": "2026-08-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0166",
+      "date": "2026-08-16",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0167",
+      "date": "2026-08-17",
+      "merchant": "Tim Hortons",
+      "amount": 12.26,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0168",
+      "date": "2026-08-20",
+      "merchant": "Starbucks",
+      "amount": 6.28,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0169",
+      "date": "2026-08-21",
+      "merchant": "Amazon",
+      "amount": 158.77,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0170",
+      "date": "2026-08-21",
+      "merchant": "Marriott",
+      "amount": 412.66,
+      "city": "Halifax",
+      "province": "Nova Scotia",
+      "country": "Canada",
+      "mcc": 3509
+    },
+    {
+      "id": "TXN-0171",
+      "date": "2026-08-22",
+      "merchant": "Uber",
+      "amount": 19.47,
+      "city": "Halifax",
+      "province": "Nova Scotia",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0172",
+      "date": "2026-08-26",
+      "merchant": "Cineplex",
+      "amount": 19.77,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7832
+    },
+    {
+      "id": "TXN-0173",
+      "date": "2026-08-28",
+      "merchant": "Canadian Tire",
+      "amount": 106.41,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5531
+    },
+    {
+      "id": "TXN-0174",
+      "date": "2026-08-28",
+      "merchant": "Costco",
+      "amount": 99.09,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5300
+    },
+    {
+      "id": "TXN-0175",
+      "date": "2026-08-29",
+      "merchant": "LCBO",
+      "amount": 67.15,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5921
+    },
+    {
+      "id": "TXN-0176",
+      "date": "2026-08-29",
+      "merchant": "Presto",
+      "amount": 42.92,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4111
+    },
+    {
+      "id": "TXN-0177",
+      "date": "2026-09-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0178",
+      "date": "2026-09-01",
+      "merchant": "Petro-Canada",
+      "amount": 64.44,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5541
+    },
+    {
+      "id": "TXN-0179",
+      "date": "2026-09-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0180",
+      "date": "2026-09-04",
+      "merchant": "Loblaws",
+      "amount": 39.91,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0181",
+      "date": "2026-09-06",
+      "merchant": "Amazon",
+      "amount": 46.31,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5999
+    },
+    {
+      "id": "TXN-0182",
+      "date": "2026-09-09",
+      "merchant": "Tim Hortons",
+      "amount": 5.85,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0183",
+      "date": "2026-09-12",
+      "merchant": "Uber",
+      "amount": 13.85,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0184",
+      "date": "2026-09-15",
+      "merchant": "DoorDash",
+      "amount": 31.73,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5812
+    },
+    {
+      "id": "TXN-0185",
+      "date": "2026-09-15",
+      "merchant": "Netflix",
+      "amount": 18.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5815
+    },
+    {
+      "id": "TXN-0186",
+      "date": "2026-09-17",
+      "merchant": "No Frills",
+      "amount": 58.36,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0187",
+      "date": "2026-09-19",
+      "merchant": "Best Buy",
+      "amount": 429.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5732
+    },
+    {
+      "id": "TXN-0188",
+      "date": "2026-09-22",
+      "merchant": "Dollarama",
+      "amount": 5.54,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5331
+    },
+    {
+      "id": "TXN-0189",
+      "date": "2026-09-24",
+      "merchant": "Tim Hortons",
+      "amount": 11.2,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0190",
+      "date": "2026-09-26",
+      "merchant": "Metro",
+      "amount": 44.18,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0191",
+      "date": "2026-09-26",
+      "merchant": "SkipTheDishes",
+      "amount": 22.57,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    },
+    {
+      "id": "TXN-0192",
+      "date": "2026-09-28",
+      "merchant": "Costco",
+      "amount": 255.56,
+      "city": "Mississauga",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5300
+    },
+    {
+      "id": "TXN-0193",
+      "date": "2026-09-30",
+      "merchant": "Shoppers Drug Mart",
+      "amount": 15.02,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5912
+    },
+    {
+      "id": "TXN-0194",
+      "date": "2026-10-01",
+      "merchant": "GoodLife Fitness",
+      "amount": 59.99,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7997
+    },
+    {
+      "id": "TXN-0195",
+      "date": "2026-10-01",
+      "merchant": "Green P Parking",
+      "amount": 13.3,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7523
+    },
+    {
+      "id": "TXN-0196",
+      "date": "2026-10-03",
+      "merchant": "Rogers",
+      "amount": 97.4,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4814
+    },
+    {
+      "id": "TXN-0197",
+      "date": "2026-10-03",
+      "merchant": "Uber",
+      "amount": 18.2,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 4121
+    },
+    {
+      "id": "TXN-0198",
+      "date": "2026-10-04",
+      "merchant": "Cineplex",
+      "amount": 38.5,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 7832
+    },
+    {
+      "id": "TXN-0199",
+      "date": "2026-10-05",
+      "merchant": "Loblaws",
+      "amount": 87.34,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5411
+    },
+    {
+      "id": "TXN-0200",
+      "date": "2026-10-05",
+      "merchant": "Tim Hortons",
+      "amount": 6.45,
+      "city": "Toronto",
+      "province": "Ontario",
+      "country": "Canada",
+      "mcc": 5814
+    }
+  ]
+}

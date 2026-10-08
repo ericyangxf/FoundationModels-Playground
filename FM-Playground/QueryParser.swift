@@ -103,7 +103,10 @@ final class QueryParser {
     var modelName: String { model.variant.displayName }
 
     /// Builds and warms what the next question will need, if it isn't warm already.
-    func prewarm() {
+    ///
+    /// `reference` is the day the next question will be resolved against —
+    /// today on the Query tab, the statement date on the Transactions tab.
+    func prewarm(reference: DateReference? = nil) {
         guard model.isAvailable else { return }
 
         if categoryReady == nil {
@@ -115,7 +118,7 @@ final class QueryParser {
             categoryReady = session
         }
 
-        let reference = DateReference()
+        let reference = reference ?? DateReference()
         guard ready?.engine != engine || ready?.day != reference.today else { return }
 
         let session = LanguageModelSession(
@@ -393,7 +396,9 @@ final class QueryParser {
 
         A question can name a specific business — "Starbucks", "Canadian Tire" — or only \
         a kind of spending — "grocery", "flights". The business goes in merchantName, \
-        spelled as written; a kind of spending goes in spendingKind, never in merchantName.
+        spelled as written; a kind of spending goes in spendingKind, never in merchantName. \
+        A kind of store — "bakery", "hardware store" — is a kind of spending too. A city, \
+        province, or country goes in place, never in merchantName.
 
         amountPhrase is the question's amount words copied exactly — "under $N", "around \
         $N" — or null when it has none.
@@ -411,14 +416,30 @@ final class QueryParser {
         You identify the kinds of spending a question about the user's own card \
         transactions refers to.
 
-        Pick a category only when the question names a kind of spending — "flights", \
-        "eating out". Pick every kind it names, in the order they appear. "rides" means \
-        taxiAndRideshare, never publicTransit; "grocery" means groceries.
+        First copy the question's words for what the money went on into spendingWords, then \
+        pick the categories those words name. Pick a category only when the question names a \
+        kind of spending. Pick every kind it names, in the order they appear.
+
+        Everyday words and the categories they mean:
+        - flights → airlines; hotel → hotels; rental car → carRental; rides, taxi, rideshare → \
+        taxiAndRideshare, never publicTransit; bus, subway, transit → publicTransit; parking, \
+        tolls → parkingAndTolls; gas, fuel → gasStations
+        - grocery → groceries; eating out, dining, takeout → restaurants; alcohol, beer, \
+        wine → liquorStores
+        - clothes, shoes → clothing; gadgets → electronics; hardware → homeImprovement; \
+        books → booksAndNews; toys → toysAndHobbies
+        - phone bill, internet → phoneInternetAndCable; streaming, music or video \
+        subscriptions → streamingAndDigitalGoods; hydro, electricity → utilities
+        - pharmacy, prescriptions → pharmacies; doctor, dentist → healthcare; gym → \
+        gymsAndFitness; pet, vet → petsAndVets; haircut, salon → beautyAndSpa
+        - movies, concerts, shows → entertainment; donations → charity; tuition → education; \
+        daycare → childcare; taxes → government
 
         Most questions name none. A business name — "Starbucks", "Walmart", "Air \
         Canada" — is not a kind of spending, and neither are amounts, dates, or \
-        general words like "spending", "purchases", "everything". With none named, \
-        return an empty list.
+        general words like "spending", "purchases", "money", "everything". A question asking \
+        which category comes out on top names none itself. With none named, return an empty \
+        list.
         """
 }
 

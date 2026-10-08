@@ -178,8 +178,19 @@ extension SpendingCategory {
 /// The list the category session fills in. Categories live in their own
 /// session and their own generable so the taxonomy never crowds the
 /// merchant-and-amount schema.
-@Generable(description: "The kinds of spending a question about the user's own card transactions asks about.")
+///
+/// `spendingWords` is scratch space generated before the list and thrown
+/// away after. Asked for categories straight off, the model often answered
+/// "flights" or "streaming" with an empty list; copying the words out first
+/// gives the pick something to map from.
+@Generable(
+    description: "The kinds of spending a question about the user's own card transactions asks about.",
+    representNilExplicitlyInGeneratedContent: true
+)
 struct CategoryQuery: Equatable, Sendable {
+    @Guide(description: #"The question's words for what kind of thing was bought, copied as written: "flights", "eating out". Null when it has none — a business name, an amount, or a date is not a kind of thing bought."#)
+    var spendingWords: String?
+
     @Guide(
         description: #"Every kind of spending the question names, like "groceries" or "flights". Empty when it names none — a specific business such as "Starbucks" is not a kind of spending."#,
         .maximumCount(3)

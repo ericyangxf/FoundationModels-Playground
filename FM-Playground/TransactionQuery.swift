@@ -43,11 +43,12 @@ extension TransactionQuery {
 /// Dropping the two date fields takes the resolved-range block out of the
 /// instructions along with them, which is where most of the prompt went.
 ///
-/// `spendingKind` and `amountPhrase` are relief valves, each generated before
-/// the fields it protects: the model wants to record "grocery" or "under $25"
-/// somewhere, and without a slot of their own they land in `merchantName` or
-/// the wrong bound. The parse throws both away — categories come from their
-/// own session, and the bounds carry the numbers.
+/// `spendingKind`, `place` and `amountPhrase` are relief valves, each
+/// generated before the fields it protects: the model wants to record
+/// "grocery", "Montreal" or "under $25" somewhere, and without a slot of their
+/// own they land in `merchantName` or the wrong bound. The parse throws all
+/// three away — categories come from their own session, and the bounds carry
+/// the numbers.
 @Generable(
     description: "Merchant and amount filters extracted from a question about the user's own card transactions.",
     representNilExplicitlyInGeneratedContent: true
@@ -55,6 +56,9 @@ extension TransactionQuery {
 struct MerchantAmountQuery: Equatable, Sendable {
     @Guide(description: #"The kind of spending the question names, copied as written: "grocery", "flights and hotels". Null when it names none."#)
     var spendingKind: String?
+
+    @Guide(description: #"The city, province, or country the question names, copied as written: "Halifax", "Ontario". Null when it names none."#)
+    var place: String?
 
     @Guide(description: #"The specific business named in the question, spelled normally: "Starbucks", "Canadian Tire". Null if no business is named — a kind of spending is not a business."#)
     var merchantName: String?
