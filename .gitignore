@@ -38,3 +38,6 @@ playground.xcworkspace
 
 # Swift Package Manager
 # Package.resolved
+### Local tools
+# Fixture generators for the Transactions tab tests, kept out of the repo
+Scripts/TransactionFixtures/
