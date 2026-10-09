@@ -1,13 +1,8 @@
 # FoundationModels-Playground
 
-A SwiftUI playground for Apple's on-device Foundation Models. Turns user input into structured query parameters.
+A SwiftUI playground for exploring the capabilities of Apple's on-device Foundation Models.
+Demonstrates how on-device AI can understand user requests, interpret natural language queries, and convert them into structured query parameters. Leverages Tool Calling to efficiently filter and analyze large volumes of transaction data.
 
-Requires Xcode 27+ and a device with Apple Intelligence enabled.
-
-| **Query Parameters 1** | **Query Parameters 2** |
+| **Transaction Search 1** | **Transaction Search 2** |
 | :----: | :----: |
-| <img width="1206" height="2622" alt="Screenshot iPhone 17 Pro 2026-09-04 at 09 14 28" src="https://github.com/user-attachments/assets/cf2d22d6-4eb5-4fd0-937c-2572c14722ee" /> | <img width="1206" height="2622" alt="Screenshot iPhone 17 Pro 2026-09-04 at 09 14 50" src="https://github.com/user-attachments/assets/7cecfc94-32dd-4a05-b4a3-438a540f898a" /> |
-
-| **Inquiry Router 1** | **Inquiry Router 2** |
-| :----: | :----: |
-| <img width="1206" height="2622" alt="Screenshot iPhone 17 Pro 2026-09-04 at 09 14 55" src="https://github.com/user-attachments/assets/9ca791f9-fb2b-4d35-a846-ee7ca5e5e858" /> | <img width="1206" height="2622" alt="Screenshot iPhone 17 Pro 2026-09-04 at 09 15 23" src="https://github.com/user-attachments/assets/bb2d43b9-fd8e-4c6f-bcda-40504025b8ef" /> |
+| <img width="660" height="1434" alt="IMG_0411" src="https://github.com/user-attachments/assets/96d4ab55-b177-44d1-969f-2d4617744692" /> | <img width="660" height="1434" alt="IMG_0413" src="https://github.com/user-attachments/assets/dfdf2517-47de-45fa-8017-4da2dc5af6cf" /> |
