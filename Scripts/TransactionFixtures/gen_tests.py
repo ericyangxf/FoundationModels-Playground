@@ -99,8 +99,8 @@ import Testing
 /// slangy — about the bundled statement.
 ///
 /// Each test runs the same path the tab does: the Query tab's parse turns the
-/// question into filters (SwiftyChronoX for the dates, the model for the
-/// rest), then a tool-calling session answers from the transactions those
+/// question into filters (the date reasoning chain for the dates, the model
+/// for the rest), then a tool-calling session answers from the transactions those
 /// filters matched. Each one writes out what a correct run looks like:
 ///
 /// - `expecting`: the filters the question really asks for, worked out by hand
@@ -113,8 +113,8 @@ import Testing
 /// `ask` then scores the run in layers, so a red test says whose fault it is:
 ///
 /// 1. The parse has to land on the same transactions. When only the dates
-///    differ, that is SwiftyChronoX's reading, and it is recorded as a known
-///    issue rather than a failure. Any other difference is the model's parse.
+///    differ, the failure names the date chain's reading and its trace; any
+///    other difference is the merchant, amount, or category parse.
 /// 2. The answer session has to call a tool — an answer written without
 ///    reading the statement is a guess, however lucky.
 /// 3. The answer text has to state the expected figure. Numbers are matched

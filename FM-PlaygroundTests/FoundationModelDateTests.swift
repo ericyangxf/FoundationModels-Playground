@@ -9,8 +9,7 @@ import Testing
 /// the specialist session for its kind, which calls that kind's one date tool
 /// in `DateTools.swift` and copies the range it answers with.
 ///
-/// Every question runs on the `.foundationModels` engine — SwiftyChronoX takes
-/// no part — and only the two dates are scored. The merchant, amount, and
+/// Every question runs the app's own parse, and only the two dates are scored. The merchant, amount, and
 /// category in the questions are there to make the sentences realistic, and
 /// the accuracy suite already covers them.
 ///
@@ -611,7 +610,6 @@ struct FoundationModelDateTests {
         parser.prewarm()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .foundationModels,
             reference: reference
         )
         let filters = parsed.filters

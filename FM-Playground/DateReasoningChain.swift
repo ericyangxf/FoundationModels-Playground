@@ -1,7 +1,7 @@
 import Foundation
 import FoundationModels
 
-// The Foundation Models engine's dates come from a chain of small sessions
+// A question's dates come from a chain of small sessions
 // rather than one session holding every date tool.
 //
 // Holding five tools at once, the model had to read the question, pick a

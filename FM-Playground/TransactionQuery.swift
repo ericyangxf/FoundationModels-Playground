@@ -38,7 +38,7 @@ extension TransactionQuery {
 }
 
 /// The half of the filter set the main session owns, with the dates taken
-/// elsewhere — by SwiftyChronoX or by the date reasoning chain.
+/// elsewhere, by the date reasoning chain.
 ///
 /// Dropping the two date fields takes the resolved-range block out of the
 /// instructions along with them, which is where most of the prompt went.
@@ -74,12 +74,7 @@ struct MerchantAmountQuery: Equatable, Sendable {
 }
 
 extension TransactionQuery {
-    /// Stitches the model's half back together with the range SwiftyChronoX read.
-    init(_ query: MerchantAmountQuery, dates: ChronoDateResolver.Resolution) {
-        self.init(query, fromDate: dates.fromDate, toDate: dates.toDate)
-    }
-
-    /// Stitches the model's half back together with a range read elsewhere.
+    /// Stitches the model's half back together with the range the date chain read.
     init(_ query: MerchantAmountQuery, fromDate: String?, toDate: String?) {
         self.init(
             merchantName: query.merchantName,

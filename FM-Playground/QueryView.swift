@@ -86,19 +86,14 @@ struct QueryView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollDismissesKeyboard(.interactively)
-        // Picker and field both live in the bottom safe area, stacked under the
-        // results and above the tab bar.
+        // The field lives in the bottom safe area, under the results and above
+        // the tab bar.
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 10) {
-                EngineTabBar(selection: parser.engine) { engine in
-                    parser.select(engine, rerunning: text)
-                }
-                QuerySearchField(
-                    prompt: "Ask about your spending",
-                    text: $text,
-                    onSubmit: search
-                )
-            }
+            QuerySearchField(
+                prompt: "Ask about your spending",
+                text: $text,
+                onSubmit: search
+            )
             .padding(.horizontal)
             .padding(.vertical, 10)
             .background(.bar)
@@ -108,49 +103,6 @@ struct QueryView: View {
     private func search(_ query: String) {
         text = query
         parser.parse(query)
-    }
-}
-
-// MARK: - Engine picker
-
-/// The engine picker that sits between the results and the search field.
-///
-/// Not a `TabView`: the system tab bar owns the very bottom of the screen, and
-/// this belongs above the search field rather than below it.
-private struct EngineTabBar: View {
-    let selection: QueryEngine
-    let onSelect: (QueryEngine) -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            ForEach(QueryEngine.allCases) { engine in
-                tab(engine)
-            }
-        }
-        .animation(.snappy(duration: 0.2), value: selection)
-    }
-
-    private func tab(_ engine: QueryEngine) -> some View {
-        let isSelected = engine == selection
-        return Button {
-            onSelect(engine)
-        } label: {
-            Text(engine.title)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .foregroundStyle(isSelected ? Color.white : Color.blue)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(isSelected ? Color.blue : Color.white, in: .capsule)
-                .overlay {
-                    // The border is what tells the two states apart at a glance
-                    // once the fill goes white.
-                    Capsule().strokeBorder(Color.blue, lineWidth: isSelected ? 0 : 1.5)
-                }
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 

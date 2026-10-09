@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F5CFE11330462EC900C51936 /* SwiftyChronoX in Frameworks */ = {isa = PBXBuildFile; productRef = F5CFE11230462EC900C51936 /* SwiftyChronoX */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,7 +41,6 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
-				F5CFE11330462EC900C51936 /* SwiftyChronoX in Frameworks */,
 			);
 		};
 		F5AA00000000000000000050 /* Frameworks */ = {
@@ -89,7 +87,6 @@
 			);
 			name = "FM-Playground";
 			packageProductDependencies = (
-				F5CFE11230462EC900C51936 /* SwiftyChronoX */,
 			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* FM-Playground.app */;
@@ -144,7 +141,6 @@
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				F5CFE11130462EC900C51936 /* XCRemoteSwiftPackageReference "SwiftyChronoX" */,
 			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
@@ -482,25 +478,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		F5CFE11130462EC900C51936 /* XCRemoteSwiftPackageReference "SwiftyChronoX" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ericyangxf/SwiftyChronoX.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.4.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		F5CFE11230462EC900C51936 /* SwiftyChronoX */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F5CFE11130462EC900C51936 /* XCRemoteSwiftPackageReference "SwiftyChronoX" */;
-			productName = SwiftyChronoX;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }

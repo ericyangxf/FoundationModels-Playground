@@ -22,8 +22,8 @@ nonisolated func foundationModelIsAvailable() -> Bool {
 /// between them on purpose: a red test should say what the model was asked and
 /// what it should have answered without sending you to a table somewhere else.
 ///
-/// Every question runs through the `.swiftyChronoX` engine, which is the app's
-/// default: the date range comes from SwiftyChronoX and the model is left with
+/// Every question runs the app's own parse: the date range comes from the date
+/// reasoning chain, scored by `ExpectedDates`, and the model is left with
 /// the merchant, the amounts, and the category. So a failure here is the model
 /// getting one of those three wrong, not a small model losing a fight with a
 /// calendar.
@@ -44,7 +44,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -86,19 +85,18 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: SwiftyChronoX's job, so they are scored against the same
-        // library reading the date phrase on its own. What can still go wrong is
-        // the sentence around it — the "$10" read as a date, say.
-        let dates = ChronoDateResolver().resolve("from the beginning of this year", reference: reference)
+        // Dates: the date chain's job, scored against the same rules the date
+        // suite uses. What can go wrong here is the sentence around them — the
+        // "$10" read as a date, say.
+        let dates = ExpectedDates(reference).this(.year)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("How much I spent at Canadian Tire this month?")
@@ -110,7 +108,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -151,17 +148,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "this month", as SwiftyChronoX reads it.
-        let dates = ChronoDateResolver().resolve("this month", reference: reference)
+        // Dates: "this month", by the date suite's rules.
+        let dates = ExpectedDates(reference).this(.month)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("Show Uber rides under $25 last week")
@@ -173,7 +169,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -214,17 +209,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected none or Taxi & Rideshare, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "last week", as SwiftyChronoX reads it.
-        let dates = ChronoDateResolver().resolve("last week", reference: reference)
+        // Dates: "last week", by the date suite's rules.
+        let dates = ExpectedDates(reference).last(.week)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("Amazon purchases between $50 and $200 last year")
@@ -236,7 +230,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -276,18 +269,17 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "last year", as SwiftyChronoX reads it. Two dollar figures sit
+        // Dates: "last year", by the date suite's rules. Two dollar figures sit
         // between the merchant and the date phrase for it to trip over.
-        let dates = ChronoDateResolver().resolve("last year", reference: reference)
+        let dates = ExpectedDates(reference).last(.year)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("How much I spent on grocery in this year?")
@@ -299,7 +291,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -340,17 +331,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected [Groceries], got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "in this year", as SwiftyChronoX reads it.
-        let dates = ChronoDateResolver().resolve("in this year", reference: reference)
+        // Dates: "in this year", by the date suite's rules.
+        let dates = ExpectedDates(reference).this(.year)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("Flights and hotels over $500 last year")
@@ -362,7 +352,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -403,17 +392,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected [Airlines, Hotels & Lodging], got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "last year", as SwiftyChronoX reads it.
-        let dates = ChronoDateResolver().resolve("last year", reference: reference)
+        // Dates: "last year", by the date suite's rules.
+        let dates = ExpectedDates(reference).last(.year)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 
     @Test("Public transit spending in the past 40 days")
@@ -425,7 +413,6 @@ struct FoundationModelAccuracyTests {
         let reference = DateReference()
         let (parsed, metrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let filters = parsed.filters
@@ -465,20 +452,17 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: the window the Foundation Models engine can't cover — 40 days
-        // is not on the list of ranges its instructions spell out, so it has to
-        // round to the nearest one. This is the case that justifies the second
-        // engine, and the one SwiftyChronoX has to get exactly right.
-        let dates = ChronoDateResolver().resolve("in the past 40 days", reference: reference)
+        // Dates: an open-ended window, 40 days back, counted by the chain's
+        // countBack tool rather than picked from a list of ranges.
+        let dates = ExpectedDates(reference).pastDays(40)
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            filters.fromDate == dates.from,
+            "fromDate: expected \(dates.from), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            filters.toDate == dates.to,
+            "toDate: expected \(dates.to), got \(filters.toDate ?? "nil")"
         )
-        #expect(metrics.datePhrase != nil, "no date phrase matched in the question")
     }
 }
 
@@ -495,7 +479,6 @@ struct FoundationModelRestraintTests {
         parser.prewarm()
         let (parsed, _) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: DateReference()
         )
 
@@ -522,7 +505,6 @@ struct FoundationModelRestraintTests {
         parser.prewarm()
         let (parsed, _) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: DateReference()
         )
 
@@ -550,7 +532,6 @@ struct FoundationModelRestraintTests {
         parser.prewarm()
         let (parsed, _) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: DateReference()
         )
 
