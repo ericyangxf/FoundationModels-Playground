@@ -1,13 +1,12 @@
 /// The two ways this app turns a question into filters.
 ///
-/// SwiftyChronoX leads because it does the calendar arithmetic itself and hands
-/// the model only the part it is reliably good at. The model on its own can
-/// match a date phrase against ranges we resolve for it up front — ask it for
-/// "the past 40 days" and it picks the closest thing on that list — so it comes
-/// second.
+/// Foundation Models leads: a chain of model sessions reads the dates out of the
+/// question and calls date tools that do the calendar arithmetic for it.
+/// SwiftyChronoX comes second, doing the date reading and arithmetic itself.
+/// Either way the merchant, category, and amount come from the model.
 enum QueryEngine: String, CaseIterable, Identifiable, Sendable {
-    case swiftyChronoX
     case foundationModels
+    case swiftyChronoX
 
     var id: String { rawValue }
 

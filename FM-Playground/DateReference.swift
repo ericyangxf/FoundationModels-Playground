@@ -27,6 +27,14 @@ struct DateReference {
 
     var todayString: String { Self.string(for: today) }
 
+    /// Today's weekday in English — "Tuesday" — so the model can tell which way
+    /// "last Friday" points.
+    var weekdayName: String {
+        var english = calendar
+        english.locale = Locale(identifier: "en_US_POSIX")
+        return english.weekdaySymbols[english.component(.weekday, from: today) - 1]
+    }
+
     /// Midday today.
     ///
     /// SwiftyChronoX shifts the reference date it is handed by whole hours, so

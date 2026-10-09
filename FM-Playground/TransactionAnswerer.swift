@@ -50,7 +50,7 @@ final class TransactionAnswerer {
     /// Warms the parse sessions. The answer session can't be warmed ahead of
     /// time — its tool is built around the transactions a question matches.
     func prewarm() {
-        parser.prewarm(reference: reference)
+        parser.prewarm()
     }
 
     func ask(_ text: String) {

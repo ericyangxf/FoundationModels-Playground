@@ -20,13 +20,20 @@ final class QueryParser {
         /// Wall time for the whole parse, so the two engines compare directly.
         var latency: Duration
         /// The slice of that spent in SwiftyChronoX. Nil on the Foundation
-        /// Models run, which has no separate date step.
+        /// Models run, whose date chain runs alongside the main session.
         var dateLatency: Duration?
         var inputTokens: Int
         var cachedInputTokens: Int
         var outputTokens: Int
         /// The words SwiftyChronoX matched, when it matched any.
         var datePhrase: String?
+        /// Each date tool the model called on the Foundation Models run, as
+        /// `name {arguments} → answer`. Always empty on the SwiftyChronoX run,
+        /// whose sessions have no tools.
+        var toolCalls: [String]
+        /// Each session of the date reasoning chain on the Foundation Models
+        /// run, in order. Empty on the SwiftyChronoX run.
+        var dateChain: [ChainStep]
         /// What the category session cost, when it answered. Nil when it failed.
         var categoryRun: CategoryRun?
         /// Why the category list came back empty-handed, when the reason is an
@@ -49,15 +56,25 @@ final class QueryParser {
                 + "Merchant and amount come from the model."
         }
 
+        /// What each session of the date chain decided and which tool it
+        /// called — the thing to check first when a Foundation Models range
+        /// comes back wrong.
+        var toolNote: String? {
+            guard engine == .foundationModels else { return nil }
+            let chain = "Date chain: " + dateChain.map(\.description).joined(separator: " → ")
+            guard !toolCalls.isEmpty else { return chain + "\nNo date tool called." }
+            return chain + "\nDate tools: " + toolCalls.joined(separator: "\n")
+        }
+
         /// Everything the main card should say under its numbers.
         var footnote: String? {
-            let parts = [dateNote, categoryNote].compactMap { $0 }
+            let parts = [dateNote, toolNote, categoryNote].compactMap { $0 }
             return parts.isEmpty ? nil : parts.joined(separator: "\n")
         }
     }
 
     private(set) var phase: Phase = .idle
-    private(set) var engine: QueryEngine = .swiftyChronoX
+    private(set) var engine: QueryEngine = .foundationModels
 
     /// The most permissive guardrails Apple exposes.
     ///
@@ -72,22 +89,20 @@ final class QueryParser {
 
     private let chrono = ChronoDateResolver()
 
-    /// A session built and warmed ahead of the next question.
+    /// The merchant-and-amount session, built and warmed ahead of the next
+    /// question. Both engines use it: they differ only in where the dates
+    /// come from.
     ///
     /// Each question gets its own session so one parse can't colour the next —
     /// a shared transcript would let a previous merchant or date range leak into
     /// the following answer. Warming the next one up front keeps that isolation
     /// from showing up as latency.
-    ///
-    /// The two engines carry different instructions, so a warm session is only
-    /// good for the engine it was built for.
-    private struct WarmSession {
-        let session: LanguageModelSession
-        let engine: QueryEngine
-        let day: Date
-    }
+    private var ready: LanguageModelSession?
 
-    private var ready: WarmSession?
+    /// The date chain's two readers, warm for the next Foundation Models run.
+    /// Their instructions carry no date, so they never go stale; the sessions
+    /// after them are built once the readers have said what they need.
+    private var readersReady: DateReasoningChain.Readers?
 
     /// A warm session for the category parse. Engine- and day-independent,
     /// since its instructions never change.
@@ -104,9 +119,9 @@ final class QueryParser {
 
     /// Builds and warms what the next question will need, if it isn't warm already.
     ///
-    /// `reference` is the day the next question will be resolved against —
-    /// today on the Query tab, the statement date on the Transactions tab.
-    func prewarm(reference: DateReference? = nil) {
+    /// None of it depends on the day: the date tools are built for each
+    /// question, against the reference it is answered on.
+    func prewarm() {
         guard model.isAvailable else { return }
 
         if categoryReady == nil {
@@ -118,15 +133,17 @@ final class QueryParser {
             categoryReady = session
         }
 
-        let reference = reference ?? DateReference()
-        guard ready?.engine != engine || ready?.day != reference.today else { return }
+        if ready == nil {
+            let session = makeSession()
+            session.prewarm()
+            ready = session
+        }
 
-        let session = LanguageModelSession(
-            model: model,
-            instructions: Instructions(Self.instructions(for: engine, reference: reference))
-        )
-        session.prewarm()
-        ready = WarmSession(session: session, engine: engine, day: reference.today)
+        if engine == .foundationModels, readersReady == nil {
+            let readers = DateReasoningChain.Readers(model: model)
+            readers.prewarm()
+            readersReady = readers
+        }
     }
 
     /// Switches engines and answers the question again with the new one — the
@@ -202,7 +219,7 @@ final class QueryParser {
         using engine: QueryEngine,
         reference: DateReference
     ) async throws -> (ParsedQuery, Metrics) {
-        let session = takeSession(for: engine, reference: reference)
+        let session = takeSession()
 
         // Categories come from a session of their own: the taxonomy is a whole
         // schema by itself, and a separate context window keeps it from
@@ -216,23 +233,41 @@ final class QueryParser {
 
         switch engine {
         case .foundationModels:
+            // The dates come from a chain of sessions of their own, started
+            // first so it runs alongside the merchant-and-amount parse.
+            let chain = DateReasoningChain(
+                model: model,
+                arithmetic: DateArithmetic(calendar: reference.calendar, today: reference.today)
+            )
+            async let chainOutcome = chain.resolve(question, readers: takeReaders())
+
             let response = try await session.respond(
                 to: question,
-                generating: TransactionQuery.self,
+                generating: MerchantAmountQuery.self,
                 // Greedy sampling keeps repeated runs of the same question
                 // comparable, which is the whole point of a latency playground.
                 options: GenerationOptions(samplingMode: .greedy),
                 // Extraction needs the schema in the prompt but no deliberation.
                 contextOptions: ContextOptions(includeSchemaInPrompt: true)
             )
-            let usage = response.usage
+            let dates = try await chainOutcome
             // Clocked before the category await, so this stays the main
             // run's own time even when the second session finishes later.
             let latency = clock.now - start
             let outcome = await categoryOutcome
             return (
-                ParsedQuery(filters: response.content, categories: outcome.categories),
-                metrics(engine: engine, latency: latency, usage: usage, outcome: outcome)
+                ParsedQuery(
+                    filters: TransactionQuery(response.content, fromDate: dates.fromDate, toDate: dates.toDate),
+                    categories: outcome.categories
+                ),
+                metrics(
+                    engine: engine,
+                    latency: latency,
+                    usage: response.usage,
+                    toolCalls: dates.toolCalls,
+                    dateChain: dates,
+                    outcome: outcome
+                )
             )
 
         case .swiftyChronoX:
@@ -272,30 +307,50 @@ final class QueryParser {
         usage: LanguageModelSession.Usage,
         dateLatency: Duration? = nil,
         datePhrase: String? = nil,
+        toolCalls: [String] = [],
+        dateChain: DateChainOutcome? = nil,
         outcome: CategoryOutcome
     ) -> Metrics {
+        // The chain's sessions are part of this run's cost, so their tokens
+        // count toward its totals; the footnote breaks them out.
         Metrics(
             engine: engine,
             latency: latency,
             dateLatency: dateLatency,
-            inputTokens: usage.input.totalTokenCount,
-            cachedInputTokens: usage.input.cachedTokenCount,
-            outputTokens: usage.output.totalTokenCount,
+            inputTokens: usage.input.totalTokenCount + (dateChain?.inputTokens ?? 0),
+            cachedInputTokens: usage.input.cachedTokenCount + (dateChain?.cachedInputTokens ?? 0),
+            outputTokens: usage.output.totalTokenCount + (dateChain?.outputTokens ?? 0),
             datePhrase: datePhrase,
+            toolCalls: toolCalls,
+            dateChain: dateChain?.steps ?? [],
             categoryRun: outcome.run,
             categoryNote: outcome.note
         )
     }
 
-    private func takeSession(for engine: QueryEngine, reference: DateReference) -> LanguageModelSession {
-        if let ready, ready.engine == engine, ready.day == reference.today {
+    private func takeSession() -> LanguageModelSession {
+        if let ready {
             self.ready = nil
-            return ready.session
+            return ready
         }
-        return LanguageModelSession(
+        return makeSession()
+    }
+
+    /// The merchant-and-amount session. Neither engine asks it for dates: on
+    /// one run SwiftyChronoX takes them, on the other the date chain.
+    private func makeSession() -> LanguageModelSession {
+        LanguageModelSession(
             model: model,
-            instructions: Instructions(Self.instructions(for: engine, reference: reference))
+            instructions: Instructions(Self.merchantAndAmountInstructions)
         )
+    }
+
+    private func takeReaders() -> DateReasoningChain.Readers {
+        if let readersReady {
+            self.readersReady = nil
+            return readersReady
+        }
+        return DateReasoningChain.Readers(model: model)
     }
 
     private func takeCategorySession() -> LanguageModelSession {
@@ -345,13 +400,6 @@ final class QueryParser {
         }
     }
 
-    private static func instructions(for engine: QueryEngine, reference: DateReference) -> String {
-        switch engine {
-        case .foundationModels: fullInstructions(for: reference)
-        case .swiftyChronoX: merchantAndAmountInstructions
-        }
-    }
-
     private static let amountRules = """
         AMOUNTS are set only by an explicit comparison in the question.
         - "above $N", "over $N", "more than $N" -> fromAmount N, toAmount null
@@ -360,34 +408,9 @@ final class QueryParser {
         - a bare amount, or a vague one like "around $N" -> both null
         """
 
-    private static func fullInstructions(for reference: DateReference) -> String {
-        """
-        You turn a person's question about their own card transactions into search filters.
-
-        Fill in only what the question actually says. Anything it does not mention stays \
-        null — never invent a merchant, an amount, or a date.
-
-        A merchant is a specific business named in the question — "Starbucks", "Canadian \
-        Tire". A word for what was bought rather than for a business is never a merchant; \
-        when no business is named, merchantName is null.
-
-        \(amountRules)
-
-        DATES are always formatted yyyy-MM-dd. Do not work any date out yourself. Today is \
-        \(reference.todayString), and every range you might need is already resolved here — \
-        find the one the question refers to and copy its two dates exactly:
-
-        \(reference.resolvedRanges)
-
-        An open-ended phrase — "since", "from the beginning of", "so far this" — starts at that \
-        period's first day and ends today, \(reference.todayString).
-
-        If the question mentions no time at all, leave both dates null.
-        """
-    }
-
-    /// SwiftyChronoX has already taken the dates, so this leaves them out
-    /// entirely rather than asking for an answer that would be thrown away.
+    /// The dates are taken elsewhere — by SwiftyChronoX or the date chain —
+    /// so this leaves them out entirely rather than asking for an answer that
+    /// would be thrown away.
     private static let merchantAndAmountInstructions = """
         You turn a person's question about their own card transactions into search filters.
 
