@@ -133,7 +133,7 @@ private struct StatementCard: View {
                     .font(.subheadline.weight(.medium))
             }
 
-            Text("Questions are answered as if asked on the statement date.")
+            Text("Questions are answered as of today.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
