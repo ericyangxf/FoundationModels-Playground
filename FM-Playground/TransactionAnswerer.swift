@@ -44,8 +44,9 @@ final class TransactionAnswerer {
 
     var modelName: String { model.variant.displayName }
 
-    /// Today, as far as this tab is concerned: the statement date.
-    var reference: DateReference { store.reference }
+    /// Today, as far as this tab is concerned: the real date, as on the Query
+    /// tab, so a question is read against the same day on both tabs.
+    var reference: DateReference { DateReference() }
 
     /// Warms the parse sessions. The answer session can't be warmed ahead of
     /// time — its tool is built around the transactions a question matches.
