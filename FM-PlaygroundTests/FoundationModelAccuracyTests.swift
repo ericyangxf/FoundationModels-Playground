@@ -91,11 +91,11 @@ struct FoundationModelAccuracyTests {
 
         // Amounts: "above $10" is a floor and nothing else. An upper bound here
         // would be invented, and would silently narrow the search.
-        // A 0 and a null both mean no bound, so either passes.
         #expect(
             filters.fromAmount == 10,
             "fromAmount: expected 10, got \(filters.fromAmount?.description ?? "nil")"
         )
+        // A 0 and a null both mean no bound, so either passes.
         #expect(
             filters.toAmount == nil || filters.toAmount == 0,
             "toAmount: expected no bound, got \(filters.toAmount?.description ?? "nil")"
@@ -397,11 +397,11 @@ struct FoundationModelAccuracyTests {
         )
 
         // Amounts: "over $500" is a floor and nothing else.
-        // A 0 and a null both mean no bound, so either passes.
         #expect(
             filters.fromAmount == 500,
             "fromAmount: expected 500, got \(filters.fromAmount?.description ?? "nil")"
         )
+        // A 0 and a null both mean no bound, so either passes.
         #expect(
             filters.toAmount == nil || filters.toAmount == 0,
             "toAmount: expected no bound, got \(filters.toAmount?.description ?? "nil")"
@@ -429,7 +429,7 @@ struct FoundationModelAccuracyTests {
     }
 
     @Test("Public transit spending in the past 40 days")
-    func starbucksPastFortyDays() async throws {
+    func publicTransitPastFortyDays() async throws {
         let question = "Public transit spending in the past 40 days"
 
         let parser = QueryParser()
@@ -451,11 +451,11 @@ struct FoundationModelAccuracyTests {
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
 
-        // Merchant: the instructions call this one out by name, because "40
-        // days" is the kind of thing that ends up in the merchant field.
+        // Merchant: a kind of spending and no business — and "40 days" is the
+        // kind of thing that ends up in the merchant field.
         #expect(
             filters.merchantName == nil,
-            "merchantName: expected nil"
+            "merchantName: expected nil, got \(filters.merchantName ?? "nil")"
         )
 
         // Amounts: none mentioned.
@@ -469,11 +469,11 @@ struct FoundationModelAccuracyTests {
             "toAmount: expected no bound, got \(filters.toAmount?.description ?? "nil")"
         )
 
-        // Categories: a business name, with eating out as the near miss.
-        let tolerated: Set<SpendingCategory> = [.publicTransit]
+        // Categories: "public transit" names a kind of spending outright, so
+        // it has to land here — an empty list is a miss, not a near one.
         #expect(
-            parsed.categories.allSatisfy(tolerated.contains),
-            "categories: expected none, got \(parsed.categories.map(\.title))"
+            parsed.categories == [.publicTransit],
+            "categories: expected [Public Transit], got \(parsed.categories.map(\.title))"
         )
 
         // Dates: the window the instructions don't cover — 40 days is not on

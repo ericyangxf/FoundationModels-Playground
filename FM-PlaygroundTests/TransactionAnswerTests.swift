@@ -51,7 +51,7 @@ struct TransactionAnswerTests {
     func uberSoFarThisYear() async throws {
         try await ask(
             "how much have i spent on uber so far this year",
-            expecting: .init(merchant: "Uber", dates: ("2026-01-01", "2026-12-31")),
+            expecting: .init(merchant: "Uber", dates: ("2026-01-01", "2026-10-06")),
             matches: 9,
             answer: .amount(191.27)
         )
@@ -131,7 +131,7 @@ struct TransactionAnswerTests {
     func loblawsLast90Days() async throws {
         try await ask(
             "How much have I spent at Loblaws in the last 90 days?",
-            expecting: .init(merchant: "Loblaws", dates: ("2026-07-08", "2026-10-06")),
+            expecting: .init(merchant: "Loblaws", dates: ("2026-07-09", "2026-10-06")),
             matches: 3,
             answer: .amount(238.23)
         )
@@ -171,7 +171,7 @@ struct TransactionAnswerTests {
     func goodLifeSoFarThisYear() async throws {
         try await ask(
             "What have I paid GoodLife so far this year?",
-            expecting: .init(merchant: "GoodLife Fitness", dates: ("2026-01-01", "2026-12-31")),
+            expecting: .init(merchant: "GoodLife Fitness", dates: ("2026-01-01", "2026-10-06")),
             matches: 10,
             answer: .amount(599.90)
         )
@@ -355,7 +355,7 @@ struct TransactionAnswerTests {
     func eatingOutPastThirtyDays() async throws {
         try await ask(
             "What did I spend eating out in the past 30 days?",
-            expecting: .init(categories: [.restaurants], dates: ("2026-09-06", "2026-10-06")),
+            expecting: .init(categories: [.restaurants], dates: ("2026-09-07", "2026-10-06")),
             matches: 5,
             answer: .amount(77.80)
         )
@@ -933,10 +933,10 @@ struct TransactionAnswerTests {
         )
     }
 
-    @Test("Which store did I spend the most at this year?")
-    func topStoreThisYear() async throws {
+    @Test("Which merchant did I spend the most at this year?")
+    func topMerchantThisYear() async throws {
         try await ask(
-            "Which store did I spend the most at this year?",
+            "Which merchant did I spend the most at this year?",
             expecting: .init(dates: ("2026-01-01", "2026-12-31")),
             matches: 150,
             answer: .group("Marriott", 1102.06)
@@ -1029,7 +1029,7 @@ struct TransactionAnswerTests {
     func lyftPastMonth() async throws {
         try await ask(
             "Any Lyft rides in the past month?",
-            expecting: .init(merchant: "Lyft", dates: ("2026-09-06", "2026-10-06")),
+            expecting: .init(merchant: "Lyft", dates: ("2026-09-07", "2026-10-06")),
             matches: 0,
             answer: .nothing
         )

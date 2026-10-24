@@ -25,6 +25,9 @@ THIS_MONTH = ("2026-10-01", "2026-10-31")
 PAST_6_MONTHS = ("2026-04-06", TODAY)
 PAST_3_MONTHS = ("2026-07-06", TODAY)
 PAST_2_MONTHS = ("2026-08-06", TODAY)
+# N days ending today, today included — DateReference's daysAgo(N - 1).
+PAST_30_DAYS = ("2026-09-07", TODAY)
+PAST_90_DAYS = ("2026-07-09", TODAY)
 PAST_YEAR = ("2025-10-06", TODAY)
 SINCE_JUNE = ("2026-06-01", TODAY)
 SINCE_JANUARY = ("2026-01-01", TODAY)
@@ -39,7 +42,7 @@ CASES = [
     ("uberPastSixMonths", "How much I spent at Uber in the past 6 months",
      s("Uber", dates=PAST_6_MONTHS), ("total",)),
     ("uberSoFarThisYear", "how much have i spent on uber so far this year",
-     s("Uber", dates=THIS_YEAR), ("total",)),
+     s("Uber", dates=SINCE_JANUARY), ("total",)),
     ("timHortonsLastMonth", "What's my total at Tim Hortons last month?",
      s("Tim Hortons", dates=LAST_MONTH), ("total",)),
     ("starbucksDamageThisYear", "Starbucks damage for this year?",
@@ -55,7 +58,7 @@ CASES = [
     ("netflixPastYear", "What has Netflix cost me over the past year?",
      s("Netflix", dates=PAST_YEAR), ("total",)),
     ("loblawsLast90Days", "How much have I spent at Loblaws in the last 90 days?",
-     s("Loblaws", dates=("2026-07-08", TODAY)), ("total",)),
+     s("Loblaws", dates=PAST_90_DAYS), ("total",)),
     ("shoppersInMarch", "What did I spend at Shoppers Drug Mart in March?",
      s("Shoppers Drug Mart", dates=("2026-03-01", "2026-03-31")), ("total",)),
     ("canadianTireSinceStartOfYear", "Canadian Tire spending since the start of the year",
@@ -63,7 +66,7 @@ CASES = [
     ("petroCanadaLastMonth", "How much did I put into Petro-Canada last month?",
      s("Petro-Canada", dates=LAST_MONTH), ("total",)),
     ("goodLifeSoFarThisYear", "What have I paid GoodLife so far this year?",
-     s("GoodLife Fitness", dates=THIS_YEAR), ("total",)),
+     s("GoodLife Fitness", dates=SINCE_JANUARY), ("total",)),
     ("doorDashPastTwoMonths", "How much have I blown on DoorDash in the past 2 months?",
      s("DoorDash", dates=PAST_2_MONTHS), ("total",)),
     ("ikeaAllTime", "How much have I spent at IKEA?",
@@ -103,7 +106,7 @@ CASES = [
     ("gasThisYear", "How much have I spent on gas this year?",
      s(categories=["gasStations"], dates=THIS_YEAR), ("total",)),
     ("eatingOutPastThirtyDays", "What did I spend eating out in the past 30 days?",
-     s(categories=["restaurants"], dates=("2026-09-06", TODAY)), ("total",)),
+     s(categories=["restaurants"], dates=PAST_30_DAYS), ("total",)),
     ("ridesLastMonth", "How much did I spend on rides last month?",
      s(categories=["taxiAndRideshare"], dates=LAST_MONTH), ("total",)),
     ("flightsThisYear", "How much have I spent on flights this year?",
@@ -228,7 +231,7 @@ CASES = [
      s(), ("group", "city", "Vancouver")),
     ("spentInMontreal", "How much did I spend in Montreal?",
      s(), ("group", "city", "Montreal")),
-    ("topStoreThisYear", "Which store did I spend the most at this year?",
+    ("topMerchantThisYear", "Which merchant did I spend the most at this year?",
      s(dates=THIS_YEAR), ("group", "merchant", None)),
     ("topRideshare", "Where did most of my rideshare money go?",
      s(categories=["taxiAndRideshare"]), ("group", "merchant", None)),
@@ -249,7 +252,7 @@ CASES = [
     ("appleStoreThisMonth", "Did I spend anything at the Apple Store this month?",
      s("Apple Store", dates=THIS_MONTH), ("nothing",)),
     ("lyftPastMonth", "Any Lyft rides in the past month?",
-     s("Lyft", dates=("2026-09-06", TODAY)), ("nothing",)),
+     s("Lyft", dates=PAST_30_DAYS), ("nothing",)),
     ("sephoraLastMonth", "Did I buy anything at Sephora last month?",
      s("Sephora", dates=LAST_MONTH), ("nothing",)),
     ("spotifyThisYear", "Did Spotify charge me this year?",
