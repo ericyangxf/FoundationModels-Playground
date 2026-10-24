@@ -1,11 +1,12 @@
 import FoundationModels
 import SwiftUI
 
-/// Answers questions about the bundled statement: the Query tab's parse picks
-/// the transactions, and a tool-calling session works out the answer.
+/// Answers questions about the bundled statement: one tool-calling session
+/// picks the filters, searches the statement, and writes the answer.
 struct TransactionsView: View {
     @State private var answerer = TransactionAnswerer()
     @State private var text = ""
+    private let model = OnDeviceModel.shared
 
     /// A few of the questions the accuracy tests ask, one per kind of answer.
     static let examples = [
@@ -21,7 +22,7 @@ struct TransactionsView: View {
         NavigationStack {
             content
                 .navigationTitle("Transactions")
-                .modelStatus(answerer.availability, modelName: answerer.modelName)
+                .modelStatus(model)
                 .onChange(of: text) { _, query in
                     // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -34,11 +35,10 @@ struct TransactionsView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch answerer.availability {
-        case .available:
+        if model.status == .ready {
             results
-        case .unavailable(let reason):
-            UnavailableView(reason: reason)
+        } else {
+            ModelDownloadView(model: model)
         }
     }
 
@@ -50,29 +50,17 @@ struct TransactionsView: View {
                     StatementCard(store: answerer.store)
                     ExampleList(examples: Self.examples, onPick: ask)
                 case .answering:
-                    ProgressView("Answering…")
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 60)
+                    LiveTraceView(entries: answerer.liveEntries)
                 case .answered(let answer):
                     AnswerCard(answer: answer)
                     FiltersCard(answer: answer)
+                    ReasoningCard(run: answer.run)
                     ToolCallsCard(calls: answer.toolCalls)
                     MetricsCard(
                         title: "Answer session run",
-                        latency: answer.latency.latencyDescription,
-                        inputTokens: answer.inputTokens,
-                        cachedInputTokens: answer.cachedInputTokens,
-                        outputTokens: answer.outputTokens,
-                        footnote: "Tool calling over the \(answer.matches.count) matching "
-                            + "transactions, after the parse below."
-                    )
-                    MetricsCard(
-                        title: "Inquery parsing session run",
-                        latency: answer.parseMetrics.latencyDescription,
-                        inputTokens: answer.parseMetrics.inputTokens,
-                        cachedInputTokens: answer.parseMetrics.cachedInputTokens,
-                        outputTokens: answer.parseMetrics.outputTokens,
-                        footnote: answer.parseMetrics.footnote
+                        run: answer.run,
+                        footnote: "Thinking, one call to searchTransactions, then the answer — "
+                            + "all in one session."
                     )
                 case .failed(let message):
                     MessageCard(
@@ -179,7 +167,9 @@ struct TransactionListView: View {
             }
         }
         .navigationTitle("All Transactions")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 }
 
@@ -227,7 +217,8 @@ private struct AnswerCard: View {
     }
 }
 
-/// What the parse put on the statement, and how much of it that left.
+/// The filters the model searched with, and how much of the statement they
+/// left.
 private struct FiltersCard: View {
     let answer: TransactionAnswer
 
@@ -236,7 +227,7 @@ private struct FiltersCard: View {
             Text("Search filters")
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
-            Text(answer.scope.summary)
+            Text(answer.scope?.summary ?? "The model didn't search the statement.")
                 .font(.callout.monospaced())
             Text("\(answer.matches.count) of \(TransactionStore.bundled.transactions.count) transactions matched.")
                 .font(.footnote)

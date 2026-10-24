@@ -1,13 +1,13 @@
 import Foundation
 import FoundationModels
 
-/// Answers a question about the bundled statement in two steps.
+/// Answers a question about the bundled statement in one model session.
 ///
-/// First the Query tab's own parse — the model reading merchant, amounts,
-/// dates and categories — turns the question into filters.
-/// Then a second model session, holding a tool built around the transactions
-/// those filters matched, works out what the question asks about them and
-/// writes the answer from the tool's figures.
+/// The model reads the question, thinks out what it asks for — the merchant,
+/// the kinds of spending, the amounts, and the dates, which it works out from
+/// today itself — and calls the search tool with those filters. The tool does
+/// the filtering and the arithmetic; the model writes the answer from what
+/// comes back.
 @MainActor
 @Observable
 final class TransactionAnswerer {
@@ -20,38 +20,29 @@ final class TransactionAnswerer {
 
     private(set) var phase: Phase = .idle
 
+    /// The question in flight as far as it has got — thinking, the tool call
+    /// and what it returned, then the answer as it streams.
+    private(set) var liveEntries: [Transcript.Entry] = []
+
     let store: TransactionStore
 
-    /// The same parser the Query tab runs, so a question is read the same way
-    /// on both tabs.
-    private let parser = QueryParser()
-
-    /// The same permissive guardrails as the parse: the input is the person's
-    /// own question about their own spending.
-    private let model = SystemLanguageModel(
-        useCase: .general,
-        guardrails: .permissiveContentTransformations
-    )
+    /// The day questions are asked on, when it isn't today.
+    private let fixedReference: DateReference?
 
     /// The answer in flight, kept so clearing the search bar can drop it.
     private var activeRun: Task<Void, Never>?
 
-    init(store: TransactionStore = .bundled) {
+    /// - Parameter reference: The day to answer as of. Nil, as on the tab,
+    ///   means the real date; the accuracy tests pin the statement date.
+    init(store: TransactionStore = .bundled, reference: DateReference? = nil) {
         self.store = store
+        self.fixedReference = reference
     }
 
-    var availability: SystemLanguageModel.Availability { model.availability }
+    var reference: DateReference { fixedReference ?? DateReference() }
 
-    var modelName: String { model.variant.displayName }
-
-    /// Today, as far as this tab is concerned: the real date, as on the Query
-    /// tab, so a question is read against the same day on both tabs.
-    var reference: DateReference { DateReference() }
-
-    /// Warms the parse sessions. The answer session can't be warmed ahead of
-    /// time — its tool is built around the transactions a question matches.
     func prewarm() {
-        parser.prewarm(reference: reference)
+        OnDeviceModel.shared.prewarm()
     }
 
     func ask(_ text: String) {
@@ -61,6 +52,7 @@ final class TransactionAnswerer {
             return
         }
         activeRun?.cancel()
+        liveEntries = []
         phase = .answering
         activeRun = Task { await run(question) }
     }
@@ -68,14 +60,16 @@ final class TransactionAnswerer {
     func reset() {
         activeRun?.cancel()
         activeRun = nil
+        liveEntries = []
         phase = .idle
-        prewarm()
     }
 
     private func run(_ question: String) async {
-        defer { prewarm() }
         do {
-            let answer = try await answer(question)
+            let answer = try await answer(question) { entries in
+                guard !Task.isCancelled else { return }
+                self.liveEntries = entries
+            }
             guard !Task.isCancelled else { return }
             phase = .answered(answer)
         } catch {
@@ -86,88 +80,82 @@ final class TransactionAnswerer {
 
     /// Runs one question end to end without touching `phase` — the path both
     /// the view and the accuracy tests take.
-    func answer(_ question: String) async throws -> TransactionAnswer {
-        let reference = reference
-        let (parsed, parseMetrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
-        let scope = TransactionScope(parsed)
-        let matches = store.matching(scope)
-        let filters = scope.summary
-
+    func answer(
+        _ question: String,
+        onUpdate: ([Transcript.Entry]) -> Void = { _ in }
+    ) async throws -> TransactionAnswer {
         let session = LanguageModelSession(profile: AnswerProfile(
-            model: model,
-            instructions: Self.instructions,
-            tool: LookUpTransactionsTool(transactions: matches, filters: filters)
+            model: OnDeviceModel.languageModel,
+            instructions: Self.instructions(for: reference),
+            tool: SearchTransactionsTool(store: store)
         ))
 
         let clock = ContinuousClock()
         let start = clock.now
-        let response = try await session.respond(to: Self.prompt(question: question, filters: filters))
+        let stream = session.streamResponse(to: question)
+        for try await snapshot in stream {
+            onUpdate(Array(snapshot.transcriptEntries))
+        }
+        let response = try await stream.collect()
         let latency = clock.now - start
-        let usage = response.usage
 
+        let toolCalls = ToolCallRecord.records(in: response.transcriptEntries)
+        // The filters the answer stands on are those of the last search.
+        let scope = toolCalls.compactMap(\.searchScope).last
         return TransactionAnswer(
             question: question,
-            parsed: parsed,
-            parseMetrics: parseMetrics,
             scope: scope,
-            matches: matches,
+            matches: scope.map(store.matching) ?? [],
             text: response.content.trimmingCharacters(in: .whitespacesAndNewlines),
-            toolCalls: ToolCallRecord.records(in: response.transcriptEntries),
-            latency: latency,
-            inputTokens: usage.input.totalTokenCount,
-            cachedInputTokens: usage.input.cachedTokenCount,
-            outputTokens: usage.output.totalTokenCount
+            toolCalls: toolCalls,
+            run: ModelRun(latency: latency, usage: response.usage, entries: response.transcriptEntries)
         )
     }
 
-    private static func prompt(question: String, filters: String) -> String {
+    private static func instructions(for reference: DateReference) -> String {
         """
-        Question: \(question)
-        Filters already applied: \(filters)
-        """
-    }
+        You answer a person's questions about their own credit card statement.
 
-    private static let instructions = """
-        You answer a person's questions about their own credit card transactions.
+        Read the statement with searchTransactions: call it once, with the filters the question \
+        asks for, then answer from what it returns.
 
-        The question's filters are already applied. Call lookUpTransactions to read the \
-        matching transactions, then write the answer from the data it returns. Never add up, \
-        filter, or work out anything yourself — every figure in your answer comes from that data.
+        \(FilterRules.text)
+        - Group by a merchant, category, city, province or month when the question asks which \
+        one comes out on top, or how much was spent in a named city or province.
+        - List in an order when the question asks to see or list transactions, or for its \
+        latest, earliest, biggest or smallest few.
+
+        \(reference.promptRules)
 
         How to answer:
-        - Start with the figure the question asks for: totalSpent for how much, \
-        matchingTransactionCount for how many, averagePerTransaction for an average, or one \
-        transaction's amount and date for the biggest, smallest, first, or last.
-        - Which or where: name the first entry in groupTotals and its totalSpent — a group, \
-        never a single transaction.
-        - Show, list, or what was bought: add one line per transaction in listedTransactions, \
-        each with its date, merchant, and amount.
+        - Every figure comes from the tool's results. Don't add up, count or work out amounts \
+        yourself.
+        - Start with what the question asks for: totalSpent for how much, \
+        matchingTransactionCount for how many, averagePerTransaction for an average, one \
+        transaction's merchant, amount and date for the biggest, smallest, first or last, or \
+        the first group in groupTotals and its total for which one or where.
+        - To show or list transactions, give one line per listed transaction with its date, \
+        merchant and amount.
         - When matchingTransactionCount is 0, say that no transactions matched.
-
-        Write amounts with a dollar sign and cents, and dates as the month name, day, and year.
+        - Write amounts with a dollar sign and cents, and dates as the month name, day and year.
         """
+    }
 }
 
 /// The answer session's setup: one tool, called exactly once.
 ///
-/// Left to choose, the model sometimes skipped the tool and invented figures —
-/// mostly on yes-or-no questions. A plain `.required` tool-calling mode fixes
-/// that but holds for every step of the turn, so the model called the tool
-/// again and again until the context window overflowed. This profile requires
-/// the call only until the transcript holds a tool output, then turns tool
-/// calling off so the next step is the answer.
+/// Tool calling is `.required` until the transcript holds a tool output, so
+/// the answer always stands on the statement, then `.disallowed`, so the
+/// next step is the answer rather than another search.
 struct AnswerProfile: LanguageModelSession.DynamicProfile {
     @SessionProperty(\.history) var history
 
-    let model: SystemLanguageModel
+    let model: GemmaLanguageModel
     let instructions: String
-    let tool: LookUpTransactionsTool
+    let tool: SearchTransactionsTool
 
     var body: some DynamicProfile {
-        let hasLookedUp = history.contains { entry in
+        let hasSearched = history.contains { entry in
             if case .toolOutput = entry { true } else { false }
         }
         LanguageModelSession.Profile {
@@ -175,29 +163,23 @@ struct AnswerProfile: LanguageModelSession.DynamicProfile {
             tool
         }
         .model(model)
-        // Greedy sampling keeps repeated runs of the same question comparable.
+        // Greedy decoding keeps repeated runs of the same question comparable.
         .samplingMode(.greedy)
-        .toolCallingMode(hasLookedUp ? .disallowed : .required)
+        .toolCallingMode(hasSearched ? .disallowed : .required)
     }
 }
 
 /// Everything one question produced, for the result screen and the tests.
 struct TransactionAnswer {
     var question: String
-    var parsed: ParsedQuery
-    var parseMetrics: QueryParser.Metrics
-    /// The filters the parse put on the statement.
-    var scope: TransactionScope
-    /// The transactions those filters matched — the only ones the tools saw.
+    /// The filters the model searched with. Nil when it never searched.
+    var scope: TransactionScope?
+    /// The transactions those filters matched — the ones the answer is about.
     var matches: [Transaction]
     /// The model's answer, as shown on screen.
     var text: String
     var toolCalls: [ToolCallRecord]
-    /// The answer session's own wall time, after the parse.
-    var latency: Duration
-    var inputTokens: Int
-    var cachedInputTokens: Int
-    var outputTokens: Int
+    var run: ModelRun
 }
 
 /// One tool call as the transcript recorded it: what the model asked for and
@@ -208,26 +190,26 @@ struct ToolCallRecord: Identifiable, Equatable {
     /// The arguments as JSON — `{}` for a tool that takes none.
     var arguments: String
     var output: String
+    /// The filters, for a call to the search tool whose arguments parse.
+    var searchScope: TransactionScope?
 
     static func records(in entries: some Collection<Transcript.Entry>) -> [ToolCallRecord] {
         var outputs: [String: String] = [:]
         for case .toolOutput(let output) in entries {
-            outputs[output.id] = output.segments.map { segment in
-                switch segment {
-                case .text(let text): text.content
-                case .structure(let structure): structure.content.jsonString
-                default: ""
-                }
-            }.joined(separator: "\n")
+            outputs[output.id] = Transcript.text(of: output.segments)
         }
         var records: [ToolCallRecord] = []
         for case .toolCalls(let calls) in entries {
             for call in calls {
+                let search = call.toolName == SearchTransactionsTool.toolName
+                    ? try? SearchTransactionsTool.Arguments(call.arguments)
+                    : nil
                 records.append(ToolCallRecord(
                     id: call.id,
                     toolName: call.toolName,
                     arguments: call.arguments.jsonString,
-                    output: outputs[call.id] ?? ""
+                    output: outputs[call.id] ?? "",
+                    searchScope: search.map(TransactionScope.init)
                 ))
             }
         }

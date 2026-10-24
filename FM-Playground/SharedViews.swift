@@ -1,8 +1,8 @@
 import FoundationModels
 import SwiftUI
 
-// The pieces both tabs put on screen: what a run cost, what to try, and the
-// two ways a page can have nothing to show.
+// The pieces every tab puts on screen: what a run cost, what the model is
+// thinking, what to try, and the ways a page can have nothing to show.
 
 // MARK: - Search
 
@@ -31,7 +31,9 @@ struct QuerySearchField: View {
                 .submitLabel(.search)
                 .focused($isFocused)
                 .autocorrectionDisabled()
+                #if os(iOS)
                 .textInputAutocapitalization(.never)
+                #endif
                 .onSubmit {
                     // Out of the way, so the answer lands on a visible page.
                     isFocused = false
@@ -57,15 +59,12 @@ struct QuerySearchField: View {
 
 // MARK: - Metrics
 
-/// What the round trip cost. Token counts are reported by the model itself, so
-/// they cover the model's share of the work and nothing else.
+/// What a response cost. Token counts are the engine's own, so they cover the
+/// model's share of the work and nothing else.
 struct MetricsCard: View {
     let title: String
-    let latency: String
-    let inputTokens: Int
-    let cachedInputTokens: Int
-    let outputTokens: Int
-    /// An extra line under the numbers, for a run with a story the four stats
+    let run: ModelRun
+    /// An extra line under the numbers, for a run with a story the stats
     /// don't tell on their own.
     var footnote: String?
 
@@ -76,12 +75,17 @@ struct MetricsCard: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 20) {
-                stat("Latency", latency)
-                stat("Input", "\(inputTokens) tok")
-                stat("Cached", "\(cachedInputTokens) tok")
-                stat("Output", "\(outputTokens) tok")
+                stat("Latency", run.latencyDescription)
+                stat("Input", "\(run.inputTokens) tok")
+                stat("Output", "\(run.outputTokens) tok")
+                stat("Thinking", "≈\(run.reasoningTokens) tok")
             }
 
+            if let speed = run.decodeSpeed {
+                Text("Last step decoded at \(speed, format: .number.precision(.fractionLength(1))) tokens per second, \(run.speculated ? "with speculative decoding" : "without speculative decoding").\(run.retriedUnderConstraint ? " Its first JSON didn't fit the schema, so it was rewritten under the llguidance constraint." : "")")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             if let footnote {
                 Text(footnote)
                     .font(.footnote)
@@ -98,6 +102,121 @@ struct MetricsCard: View {
             Text(value).font(.callout.monospacedDigit().weight(.medium))
             Text(label).font(.caption2).foregroundStyle(.secondary)
         }
+    }
+}
+
+// MARK: - Thinking
+
+/// The request in flight as far as it has got: the model's thinking as it
+/// streams, each tool call and what came back, and the answer as it's
+/// written.
+struct LiveTraceView: View {
+    let entries: [Transcript.Entry]
+    private let activity = ModelActivity.shared
+
+    /// The session's own entries, less a reasoning entry for the step that is
+    /// still thinking — that one is shown live from `activity` instead.
+    private var settled: [Transcript.Entry] {
+        guard activity.isThinking, entries.last?.reasoningText != nil else { return entries }
+        return Array(entries.dropLast())
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if entries.isEmpty && !activity.isThinking {
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Reading the question…")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            ForEach(settled) { entry in
+                switch entry {
+                case .reasoning:
+                    ThoughtView(text: entry.reasoningText ?? "", isThinking: false)
+                case .toolCalls(let calls):
+                    ForEach(calls) { call in
+                        Label("\(call.toolName)(\(call.arguments.jsonString))", systemImage: "wrench.and.screwdriver")
+                            .font(.caption.monospaced())
+                    }
+                case .toolOutput(let output):
+                    Label("\(output.toolName) returned its figures", systemImage: "tray.and.arrow.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                case .response(let response):
+                    Text(Transcript.text(of: response.segments))
+                        .font(.callout)
+                default:
+                    EmptyView()
+                }
+            }
+
+            if activity.isThinking {
+                ThoughtView(text: activity.thought, isThinking: true)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.fill.tertiary, in: .rect(cornerRadius: 16))
+    }
+}
+
+/// One block of thinking, live or finished.
+private struct ThoughtView: View {
+    let text: String
+    let isThinking: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
+                Label(isThinking ? "Thinking…" : "Thought", systemImage: "brain")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.purple)
+                if isThinking { ProgressView().controlSize(.small) }
+            }
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+    }
+}
+
+/// What the model thought on its way to the answer, folded away once the
+/// answer is in.
+struct ReasoningCard: View {
+    let run: ModelRun
+
+    @State private var isExpanded = false
+
+    var body: some View {
+        DisclosureGroup(isExpanded: $isExpanded) {
+            VStack(alignment: .leading, spacing: 12) {
+                if run.reasoning.isEmpty {
+                    Text("No thinking was recorded for this response.")
+                }
+                ForEach(Array(run.reasoning.enumerated()), id: \.offset) { step, thought in
+                    VStack(alignment: .leading, spacing: 4) {
+                        if run.reasoning.count > 1 {
+                            Text("Step \(step + 1)").font(.caption.weight(.semibold))
+                        }
+                        Text(thought).textSelection(.enabled)
+                    }
+                }
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .padding(.top, 8)
+        } label: {
+            Label("Thinking · ≈\(run.reasoningTokens) tokens", systemImage: "brain")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.purple)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.purple.opacity(0.08), in: .rect(cornerRadius: 16))
     }
 }
 
@@ -132,43 +251,75 @@ struct ExampleList: View {
 
 extension View {
     /// Puts the on-device model's status under the navigation title: a green
-    /// light and the model's name when it can run, a red light when it can't.
+    /// light and the model's name when it can run, amber while it downloads,
+    /// red when it isn't on the device.
     ///
     /// The lights are emoji because the subtitle renders plain text only — it
     /// drops images and colour.
-    func modelStatus(_ availability: SystemLanguageModel.Availability, modelName: String) -> some View {
-        navigationSubtitle(
-            availability == .available
-                ? "🟢 \(modelName)"
-                : "🔴 Foundation Model unavailable"
-        )
+    func modelStatus(_ model: OnDeviceModel) -> some View {
+        navigationSubtitle(model.statusLine)
     }
 }
 
-struct UnavailableView: View {
-    let reason: SystemLanguageModel.Availability.UnavailableReason
+extension OnDeviceModel {
+    var statusLine: String {
+        switch status {
+        case .ready: "🟢 \(displayName)"
+        case .downloading(let fraction): "🟡 Downloading \(displayName) · \(Int(fraction * 100))%"
+        case .notDownloaded: "🔴 \(displayName) not downloaded"
+        case .failed: "🔴 \(displayName) download failed"
+        }
+    }
+}
+
+/// What a page shows until the model file is on the device: a way to fetch
+/// it, how far along it is, or why it stopped.
+struct ModelDownloadView: View {
+    let model: OnDeviceModel
 
     var body: some View {
-        MessageCard(
-            icon: "sparkles.slash",
-            tint: .secondary,
-            title: "Foundation Models unavailable",
-            message: explanation
-        )
+        VStack(alignment: .leading, spacing: 14) {
+            Label("\(model.displayName) isn't on this device yet", systemImage: "arrow.down.circle")
+                .font(.headline)
+
+            Text("""
+                This app runs Google's Gemma 4 E4B on this device with LiteRT-LM, through the \
+                Foundation Models API. The model is a one-time \(Self.size) download from Hugging \
+                Face; keep the app open until it finishes.
+                """)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            switch model.status {
+            case .downloading(let fraction):
+                ProgressView(value: fraction) {
+                    Text("Downloading… \(fraction, format: .percent.precision(.fractionLength(0)))")
+                        .font(.footnote)
+                }
+            case .failed(let message):
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                downloadButton("Try Again")
+            case .notDownloaded:
+                downloadButton("Download \(Self.size)")
+            case .ready:
+                EmptyView()
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.fill.tertiary, in: .rect(cornerRadius: 16))
         .padding()
     }
 
-    private var explanation: String {
-        switch reason {
-        case .deviceNotEligible:
-            "This device doesn't support Apple Intelligence."
-        case .appleIntelligenceNotEnabled:
-            "Turn on Apple Intelligence in Settings to use the on-device model."
-        case .modelNotReady:
-            "The model is still downloading. Try again in a few minutes."
-        @unknown default:
-            "The on-device model isn't available right now."
+    private static let size = OnDeviceModel.downloadSize.formatted(.byteCount(style: .file))
+
+    private func downloadButton(_ title: String) -> some View {
+        Button(title, systemImage: "arrow.down") {
+            model.download()
         }
+        .buttonStyle(.borderedProminent)
     }
 }
 

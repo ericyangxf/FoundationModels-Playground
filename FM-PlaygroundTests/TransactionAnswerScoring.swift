@@ -257,50 +257,54 @@ extension TransactionAnswerTests {
             "fixture: expected filters match \(expectedIDs.count) transactions, not \(expectedCount)"
         )
 
-        let answerer = TransactionAnswerer(store: store)
+        // Asked as of the statement date, which the expected answers are
+        // worked out against.
+        let answerer = TransactionAnswerer(store: store, reference: store.reference)
         answerer.prewarm()
         let answer = try await answerer.answer(question)
         let actualIDs = Set(answer.matches.map(\.id))
+        let searched = answer.scope ?? TransactionScope()
 
         let calls = answer.toolCalls.map { call in
             "\(call.toolName)(\(call.arguments))"
         }
         print("""
             \u{201C}\(question)\u{201D}
-              filters: \(answer.scope.summary) → \(answer.matches.count) transactions
-              parsed: merchant \(answer.parsed.filters.merchantName ?? "nil"), \
-            categories [\(answer.parsed.categories.map(\.title).joined(separator: ", "))]\
-            \(answer.parseMetrics.categoryNote.map { " — \($0)" } ?? "")
+              filters: \(answer.scope?.summary ?? "no search") → \(answer.matches.count) transactions
               expected: \(expectedScope.summary) → \(expectedCount) transactions
               tools: \(calls.isEmpty ? "none" : calls.joined(separator: ", "))
               answer: \(answer.text)
               expected answer: \(expectedAnswer)
-              cost: parse \(answer.parseMetrics.latencyDescription), \
-            answer \(answer.latency.latencyDescription), \
-            \(answer.inputTokens) in (\(answer.cachedInputTokens) cached), \(answer.outputTokens) out
+              cost: \(answer.run.latencyDescription), \
+            \(answer.run.inputTokens) in, \(answer.run.outputTokens) out (≈\(answer.run.reasoningTokens) thinking)
+              thinking: \(answer.run.reasoning.joined(separator: "\n  — next step —\n"))
             """)
 
-        // 1. The parse has to pick the same transactions.
+        // 1. The model's search has to pick the same transactions.
         if actualIDs != expectedIDs {
-            var withExpectedDates = answer.scope
+            guard answer.scope != nil else {
+                Issue.record("never searched the statement: \(answer.text)")
+                return
+            }
+            var withExpectedDates = searched
             withExpectedDates.fromDate = expectedScope.fromDate
             withExpectedDates.toDate = expectedScope.toDate
             let datesOnly = Set(store.matching(withExpectedDates).map(\.id)) == expectedIDs
 
-            let parsedDates = "\(answer.scope.fromDate ?? "nil") to \(answer.scope.toDate ?? "nil")"
+            let parsedDates = "\(searched.fromDate ?? "nil") to \(searched.toDate ?? "nil")"
             let wantedDates = "\(expectedScope.fromDate ?? "nil") to \(expectedScope.toDate ?? "nil")"
             if datesOnly {
-                Issue.record("parse read the dates as \(parsedDates); expected \(wantedDates)")
+                Issue.record("search read the dates as \(parsedDates); expected \(wantedDates)")
             } else {
                 Issue.record("""
-                    parse picked \(actualIDs.count) transactions instead of \(expectedIDs.count): \
-                    got \u{201C}\(answer.scope.summary)\u{201D}, expected \u{201C}\(expectedScope.summary)\u{201D}
+                    search picked \(actualIDs.count) transactions instead of \(expectedIDs.count): \
+                    got \u{201C}\(searched.summary)\u{201D}, expected \u{201C}\(expectedScope.summary)\u{201D}
                     """)
             }
             return
         }
-        if answer.scope.fromDate != expectedScope.fromDate || answer.scope.toDate != expectedScope.toDate {
-            print("  note: dates read as \(answer.scope.fromDate ?? "nil") to \(answer.scope.toDate ?? "nil"), "
+        if searched.fromDate != expectedScope.fromDate || searched.toDate != expectedScope.toDate {
+            print("  note: dates read as \(searched.fromDate ?? "nil") to \(searched.toDate ?? "nil"), "
                 + "which matches the same transactions")
         }
 

@@ -5,6 +5,7 @@ import SwiftUI
 struct RouteView: View {
     @State private var router = QueryRouter()
     @State private var text = ""
+    private let model = OnDeviceModel.shared
 
     /// Deliberately mixed, so the two routes are one tap apart.
     private static let examples = [
@@ -19,7 +20,7 @@ struct RouteView: View {
         NavigationStack {
             content
                 .navigationTitle("Route")
-                .modelStatus(router.availability, modelName: router.modelName)
+                .modelStatus(model)
                 .onChange(of: text) { _, query in
                     // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -32,11 +33,10 @@ struct RouteView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch router.availability {
-        case .available:
+        if model.status == .ready {
             results
-        case .unavailable(let reason):
-            UnavailableView(reason: reason)
+        } else {
+            ModelDownloadView(model: model)
         }
     }
 
@@ -48,18 +48,11 @@ struct RouteView: View {
                     RouteLegend()
                     ExampleList(examples: Self.examples, onPick: route)
                 case .routing:
-                    ProgressView("Routing…")
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 60)
-                case .routed(let decision, let metrics):
+                    LiveTraceView(entries: router.liveEntries)
+                case .routed(let decision, let run):
                     RouteCard(decision: decision)
-                    MetricsCard(
-                        title: "Routing run",
-                        latency: metrics.latencyDescription,
-                        inputTokens: metrics.inputTokens,
-                        cachedInputTokens: metrics.cachedInputTokens,
-                        outputTokens: metrics.outputTokens
-                    )
+                    ReasoningCard(run: run)
+                    MetricsCard(title: "Routing run", run: run)
                 case .failed(let message):
                     MessageCard(
                         icon: "exclamationmark.triangle",

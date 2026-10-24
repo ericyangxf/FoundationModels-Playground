@@ -1,11 +1,10 @@
 import Foundation
 
-/// Calendar anchors computed ahead of time and handed to the model with the query.
+/// The day a question is asked on, as the model is told it.
 ///
-/// The on-device model is small and unreliable at date arithmetic — asking it to
-/// work out "the beginning of this year" from today's date is where it slips. So
-/// we do the arithmetic here and leave it the part it is good at: matching a
-/// phrase to one of these ranges and copying the dates out.
+/// Gemma works its date ranges out itself, thinking from today's date — the
+/// prompt carries the day, its weekday, and which day weeks start on, and no
+/// worked-out ranges. The app does no date arithmetic on the model's behalf.
 struct DateReference {
     let calendar: Calendar
     /// Midnight today, in the user's own calendar and time zone.
@@ -16,61 +15,49 @@ struct DateReference {
         self.today = calendar.startOfDay(for: now)
     }
 
-    private static let iso: DateFormatter = {
+    private static let iso: DateFormatter = formatter("yyyy-MM-dd")
+    private static let spelled: DateFormatter = formatter("EEEE, MMMM d, yyyy")
+    private static let weekday: DateFormatter = formatter("EEEE")
+
+    private static func formatter(_ format: String) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.dateFormat = format
         return formatter
-    }()
+    }
 
     static func string(for date: Date) -> String { iso.string(from: date) }
 
     var todayString: String { Self.string(for: today) }
 
-    /// The inclusive first and last day of the calendar period containing `date`.
-    ///
-    /// `DateInterval.end` is the first instant of the *next* period, so the last
-    /// day is one day back from it.
-    private func period(_ component: Calendar.Component, containing date: Date) -> (start: String, end: String) {
-        guard let interval = calendar.dateInterval(of: component, for: date) else {
-            let day = Self.string(for: date)
-            return (day, day)
-        }
-        let lastDay = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
-        return (Self.string(for: interval.start), Self.string(for: lastDay))
+    /// "Tuesday, October 6, 2026 (2026-10-06)".
+    var todayDescription: String {
+        "\(Self.spelled.string(from: today)) (\(todayString))"
     }
 
-    private func shifted(_ component: Calendar.Component, by value: Int) -> Date {
-        calendar.date(byAdding: component, value: value, to: today) ?? today
+    /// The weekday this calendar starts its weeks on, which is what "this
+    /// week" and "last week" turn on.
+    var firstWeekdayName: String {
+        Self.weekday.weekdaySymbols[calendar.firstWeekday - 1]
     }
 
-    private func daysAgo(_ count: Int) -> String {
-        Self.string(for: shifted(.day, by: -count))
-    }
+    /// The date rules both filtering prompts share: today, and what the
+    /// phrases whose reading is a convention rather than arithmetic mean
+    /// here. The model does the working out.
+    var promptRules: String {
+        """
+        Today is \(todayDescription). Weeks start on \(firstWeekdayName).
 
-    /// The block of resolved ranges that goes into the model's instructions.
-    var resolvedRanges: String {
-        let thisWeek = period(.weekOfYear, containing: today)
-        let lastWeek = period(.weekOfYear, containing: shifted(.weekOfYear, by: -1))
-        let thisMonth = period(.month, containing: today)
-        let lastMonth = period(.month, containing: shifted(.month, by: -1))
-        let thisYear = period(.year, containing: today)
-        let lastYear = period(.year, containing: shifted(.year, by: -1))
-
-        return """
-        - today: \(todayString) to \(todayString)
-        - yesterday: \(daysAgo(1)) to \(daysAgo(1))
-        - this week: \(thisWeek.start) to \(thisWeek.end)
-        - last week: \(lastWeek.start) to \(lastWeek.end)
-        - this month: \(thisMonth.start) to \(thisMonth.end)
-        - last month: \(lastMonth.start) to \(lastMonth.end)
-        - this year: \(thisYear.start) to \(thisYear.end)
-        - last year: \(lastYear.start) to \(lastYear.end)
-        - last 7 days: \(daysAgo(6)) to \(todayString)
-        - last 30 days: \(daysAgo(29)) to \(todayString)
-        - last 90 days: \(daysAgo(89)) to \(todayString)
-        - last 6 months: \(Self.string(for: shifted(.month, by: -6))) to \(todayString)
-        - last 12 months: \(Self.string(for: shifted(.month, by: -12))) to \(todayString)
+        Work out the dates the question's time words cover, from today, as a first and last day:
+        - "this week", "this month", "this year": all of it, through its last day.
+        - "so far this …", "since …", "from the beginning of …": from the start through today.
+        - "last week", "last month", "last year": all of the one before the current one.
+        - "the past N days", "the last N days": the N days ending today, today included.
+        - "the past N weeks", "months" or "years": from the same date N weeks, months or years \
+        ago through today. Without a number, N is 1.
+        - A month or year named on its own is all of it. A month named without a year is the \
+        most recent one that has begun.
+        - No time words at all: no dates.
         """
     }
 }

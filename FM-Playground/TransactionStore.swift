@@ -42,9 +42,7 @@ nonisolated struct Transaction: Identifiable, Hashable, Sendable, Decodable {
 /// card transactions from transactions.json, all in Canada, covering the
 /// twelve months up to `asOf`.
 nonisolated struct TransactionStore: Sendable {
-    /// The statement date, `yyyy-MM-dd`. Questions are answered as if asked on
-    /// this day, so "last month" means the same thing in the app and in the
-    /// tests no matter when either runs.
+    /// The statement date, `yyyy-MM-dd`.
     let asOf: String
     /// Oldest first.
     let transactions: [Transaction]
@@ -77,8 +75,9 @@ nonisolated struct TransactionStore: Sendable {
         }
     }()
 
-    /// Midday on the statement date in the user's calendar — the "today" every
-    /// question on the Transactions tab is resolved against.
+    /// Midday on the statement date in the user's calendar — the "today" the
+    /// accuracy tests ask their questions on, so their expected answers hold
+    /// whatever day the suite runs. The tab itself answers as of the real date.
     @MainActor var reference: DateReference {
         let parts = asOf.split(separator: "-").compactMap { Int($0) }
         let noon = DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: 12)
@@ -92,10 +91,8 @@ nonisolated struct TransactionStore: Sendable {
 
 // MARK: - Scope
 
-/// The filters a parsed question puts on the statement.
-///
-/// Built straight from the Query tab's parse, so the transaction answer reads
-/// the same merchant, amounts, dates and categories that tab shows.
+/// The filters a question puts on the statement — from the Query tab's parse,
+/// or from the model's call to the search tool.
 nonisolated struct TransactionScope: Equatable, Sendable {
     var merchant: String?
     var categories: [SpendingCategory]
@@ -120,27 +117,66 @@ nonisolated struct TransactionScope: Equatable, Sendable {
         self.toDate = toDate
     }
 
-    /// A named business wins over categories. The category session reads
-    /// "Starbucks" as eating out and "Canadian Tire" as home improvement; with
-    /// a merchant already pinning the search, that guess could only narrow it
-    /// by mistake.
-    ///
-    /// A zero bound is the model's way of writing "no bound", the same reading
-    /// the Query tab's tests give it.
+    /// The Query tab's parse as filters.
     init(_ parsed: ParsedQuery) {
         let filters = parsed.filters
-        let merchant = filters.merchantName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.merchant = merchant?.isEmpty == false ? merchant : nil
-        self.categories = self.merchant == nil ? parsed.categories : []
-        self.minimumCents = Self.cents(filters.fromAmount)
-        self.maximumCents = Self.cents(filters.toAmount)
-        self.fromDate = filters.fromDate
-        self.toDate = filters.toDate
+        self.init(
+            modelMerchant: filters.merchantName,
+            categories: parsed.categories,
+            minimum: filters.fromAmount,
+            maximum: filters.toAmount,
+            fromDate: filters.fromDate,
+            toDate: filters.toDate
+        )
+    }
+
+    /// The filters the model asked the search tool for.
+    init(_ arguments: SearchTransactionsTool.Arguments) {
+        self.init(
+            modelMerchant: arguments.merchant,
+            categories: arguments.categories ?? [],
+            minimum: arguments.minimumAmount,
+            maximum: arguments.maximumAmount,
+            fromDate: arguments.fromDate,
+            toDate: arguments.toDate
+        )
+    }
+
+    /// Filters as the model wrote them, read the way a search box would.
+    ///
+    /// A named business wins over categories: a model that also tags
+    /// "Starbucks" as eating out or "Canadian Tire" as home improvement could
+    /// only narrow a search the merchant already pins, by mistake.
+    ///
+    /// A zero bound and an empty string are the model's ways of writing "none",
+    /// the same reading the Query tab's tests give them.
+    private init(
+        modelMerchant: String?,
+        categories: [SpendingCategory],
+        minimum: Double?,
+        maximum: Double?,
+        fromDate: String?,
+        toDate: String?
+    ) {
+        let merchant = Self.nonEmpty(modelMerchant)
+        self.init(
+            merchant: merchant,
+            categories: merchant == nil ? categories : [],
+            minimumCents: Self.cents(minimum),
+            maximumCents: Self.cents(maximum),
+            fromDate: Self.nonEmpty(fromDate),
+            toDate: Self.nonEmpty(toDate)
+        )
     }
 
     private static func cents(_ dollars: Double?) -> Int? {
         guard let dollars, dollars > 0 else { return nil }
         return Int((dollars * 100).rounded())
+    }
+
+    private static func nonEmpty(_ text: String?) -> String? {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
     }
 
     /// True when nothing narrows the statement at all.

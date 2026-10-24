@@ -1,8 +1,10 @@
 # FoundationModels-Playground
 
-A SwiftUI playground for Apple's on-device Foundation Models. Turns user input into structured query parameters.
+A SwiftUI playground for on-device language models through Apple's Foundation Models API. Turns user input into structured query parameters, routes questions, and answers questions about a bundled card statement with tool calling.
 
-Requires Xcode 27+ and a device with Apple Intelligence enabled.
+It currently runs Google's [Gemma 4 E4B](https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm) on device with [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) (Swift package, 0.18.1), behind the Foundation Models `LanguageModel` protocol (`GemmaLanguageModel.swift`), with thinking and speculative decoding on. Every page uses a stock `LanguageModelSession`, so switching back to Apple's model is a change to `OnDeviceModel.languageModel`.
+
+Requires Xcode 27+ and iOS or macOS 27. The app downloads the 3.66 GB model file from Hugging Face on first launch.
 
 | **Query Parameters 1** | **Query Parameters 2** |
 | :----: | :----: |

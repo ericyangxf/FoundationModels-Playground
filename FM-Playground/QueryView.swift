@@ -4,6 +4,7 @@ import SwiftUI
 struct QueryView: View {
     @State private var parser = QueryParser()
     @State private var text = ""
+    private let model = OnDeviceModel.shared
 
     /// The questions the idle screen offers, and the same list the accuracy
     /// tests run against — not private so the tests can't drift from it.
@@ -21,7 +22,7 @@ struct QueryView: View {
         NavigationStack {
             content
                 .navigationTitle("Transaction Search")
-                .modelStatus(parser.availability, modelName: parser.modelName)
+                .modelStatus(model)
                 .onChange(of: text) { _, query in
                     // Covers the clear "x", which empties the field on its way out.
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -34,11 +35,10 @@ struct QueryView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch parser.availability {
-        case .available:
+        if model.status == .ready {
             results
-        case .unavailable(let reason):
-            UnavailableView(reason: reason)
+        } else {
+            ModelDownloadView(model: model)
         }
     }
 
@@ -49,30 +49,11 @@ struct QueryView: View {
                 case .idle:
                     ExampleList(examples: Self.examples, onPick: search)
                 case .parsing:
-                    ProgressView("Parsing…")
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 60)
-                case .parsed(let result, let metrics):
+                    LiveTraceView(entries: parser.liveEntries)
+                case .parsed(let result, let run):
                     ResultCard(result: result)
-                    MetricsCard(
-                        title: "Inquery parsing session run",
-                        latency: metrics.latencyDescription,
-                        inputTokens: metrics.inputTokens,
-                        cachedInputTokens: metrics.cachedInputTokens,
-                        outputTokens: metrics.outputTokens,
-                        footnote: metrics.footnote
-                    )
-                    if let categoryRun = metrics.categoryRun {
-                        MetricsCard(
-                            title: "Category session run",
-                            latency: categoryRun.latencyDescription,
-                            inputTokens: categoryRun.inputTokens,
-                            cachedInputTokens: categoryRun.cachedInputTokens,
-                            outputTokens: categoryRun.outputTokens,
-                            footnote: "A second session matched the question against "
-                                + "the category list, in parallel with the run above."
-                        )
-                    }
+                    ReasoningCard(run: run)
+                    MetricsCard(title: "Parsing session run", run: run)
                 case .failed(let message):
                     MessageCard(
                         icon: "exclamationmark.triangle",

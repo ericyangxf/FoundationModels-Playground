@@ -6,13 +6,10 @@ import Testing
 
 /// Whether the on-device model will actually answer here.
 ///
-/// A simulator or a machine without Apple Intelligence reports unavailable, and
-/// a suite of parses that cannot run should skip rather than fail.
-nonisolated func foundationModelIsAvailable() -> Bool {
-    SystemLanguageModel(
-        useCase: .general,
-        guardrails: .permissiveContentTransformations
-    ).isAvailable
+/// Until the Gemma model file has been downloaded to the device, a suite of
+/// parses that cannot run should skip rather than fail.
+nonisolated func onDeviceModelIsAvailable() -> Bool {
+    OnDeviceModel.isOnDisk
 }
 
 /// The date ranges the accuracy tests expect, worked out with plain calendar
@@ -40,7 +37,7 @@ extension DateReference {
     }
 }
 
-/// Scores Apple's on-device model on the questions the Query tab offers.
+/// Scores the on-device model on the questions the Query tab offers.
 ///
 /// One test per question, named after the question, and each one written out in
 /// full — the run, the expected values, the assertions. Nothing is shared
@@ -49,14 +46,13 @@ extension DateReference {
 ///
 /// The model reads every part of the question: the merchant, the amounts, the
 /// dates, and the category. Dates are scored against ranges worked out here
-/// with plain calendar arithmetic, not against the list the model's
-/// instructions spell out, so a slip in that list fails rather than moving
-/// the expectation along with it.
+/// with plain calendar arithmetic; the model is told only today's date and
+/// works the range out itself.
 ///
 /// Serialized on purpose. There is one on-device model, and seven parses racing
 /// each other measure the queue rather than the answer.
 @MainActor
-@Suite(.serialized, .enabled(if: foundationModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
 struct FoundationModelAccuracyTests {
     @Test("List my Starbucks transactions that above $10 from the beginning of this year")
     func starbucksAboveTenSinceJanuary() async throws {
@@ -81,6 +77,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: the business the question names. Case and padding don't count.
@@ -144,6 +141,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: a two-word name, which is where a model likes to keep only
@@ -205,6 +203,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: "Uber", not "Uber rides" — the noun after it describes what
@@ -266,6 +265,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: the one business named.
@@ -327,6 +327,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: the question names a kind of spending, not a business, so
@@ -388,6 +389,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: two kinds of spending and no business at all.
@@ -449,6 +451,7 @@ struct FoundationModelAccuracyTests {
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
+              thinking: \(metrics.reasoning.joined(separator: "\n"))
             """)
 
         // Merchant: a kind of spending and no business — and "40 days" is the
@@ -476,9 +479,8 @@ struct FoundationModelAccuracyTests {
             "categories: expected [Public Transit], got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: the window the instructions don't cover — 40 days is not on
-        // the list of ranges they spell out, so the model is tempted to copy
-        // the nearest one instead. Forty days ending today, today included.
+        // Dates: an unusual window, so a stock range like 30 days won't do.
+        // Forty days ending today, today included.
         let dates = reference.expectedPastDays(40)
         #expect(
             filters.fromDate == dates.fromDate,
@@ -494,7 +496,7 @@ struct FoundationModelAccuracyTests {
 /// The behaviour the two sessions are supposed to have on top of the examples:
 /// a question with nothing in it comes back empty rather than invented.
 @MainActor
-@Suite(.serialized, .enabled(if: foundationModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
 struct FoundationModelRestraintTests {
     @Test("Show me everything")
     func showMeEverything() async throws {

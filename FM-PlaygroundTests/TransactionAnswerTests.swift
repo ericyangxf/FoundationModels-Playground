@@ -8,10 +8,10 @@ import Testing
 /// way a bank client types them — casual, sometimes ungrammatical, sometimes
 /// slangy — about the bundled statement.
 ///
-/// Each test runs the same path the tab does: the Query tab's parse turns the
-/// question into filters, then a tool-calling session answers from the
-/// transactions those filters matched. Each one writes out what a correct run
-/// looks like:
+/// Each test runs the same path the tab does: one tool-calling session works
+/// out the filters — dates included, from the statement date it is told is
+/// today — searches the statement with them, and answers from what comes
+/// back. Each one writes out what a correct run looks like:
 ///
 /// - `expecting`: the filters the question really asks for, worked out by hand
 ///   rather than by any code under test.
@@ -22,8 +22,8 @@ import Testing
 ///
 /// `ask` then scores the run in layers, so a red test says whose fault it is:
 ///
-/// 1. The parse has to land on the same transactions. When only the dates
-///    differ, the failure says so, since the model now reads those too.
+/// 1. The model's search has to land on the same transactions. When only the
+///    dates differ, the failure says so, since the model works those out too.
 /// 2. The answer session has to call a tool — an answer written without
 ///    reading the statement is a guess, however lucky.
 /// 3. The answer text has to state the expected figure. Numbers are matched
@@ -33,7 +33,7 @@ import Testing
 /// The statement date is fixed at 2026-10-06, so the expected answers hold no
 /// matter what day the suite runs.
 @MainActor
-@Suite(.serialized, .enabled(if: foundationModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
 struct TransactionAnswerTests {
     // MARK: - How much at a merchant
 

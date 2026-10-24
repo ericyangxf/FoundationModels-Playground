@@ -127,11 +127,11 @@ struct TransactionStoreTests {
 
     private func lookUp(
         _ scope: TransactionScope,
-        groupBy: LookUpTransactionsTool.Grouping? = nil,
-        listOrder: LookUpTransactionsTool.ListOrder? = nil
+        groupBy: SearchTransactionsTool.Grouping? = nil,
+        listOrder: SearchTransactionsTool.ListOrder? = nil
     ) async throws -> TransactionLookup {
-        let tool = LookUpTransactionsTool(transactions: store.matching(scope), filters: scope.summary)
-        return try await tool.call(arguments: .init(groupBy: groupBy, listOrder: listOrder))
+        let tool = SearchTransactionsTool(store: store)
+        return try await tool.call(arguments: .init(scope, groupBy: groupBy, listOrder: listOrder))
     }
 
     @Test func toolAlwaysReturnsTheFigures() async throws {
@@ -164,7 +164,7 @@ struct TransactionStoreTests {
 
     @Test func toolListsInTheOrderAsked() async throws {
         let lookup = try await lookUp(TransactionScope(merchant: "Uber"), listOrder: .latest)
-        #expect(lookup.listedTransactions.count == LookUpTransactionsTool.maximumListCount)
+        #expect(lookup.listedTransactions.count == SearchTransactionsTool.maximumListCount)
         #expect(lookup.listedTransactions.prefix(3).map(\.amount) == [18.20, 13.85, 19.47])
     }
 

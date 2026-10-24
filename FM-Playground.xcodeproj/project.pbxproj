@@ -6,6 +6,10 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		F5D0A00300000000000000A1 /* LiteRTLM in Frameworks */ = {isa = PBXBuildFile; productRef = F5D0A00200000000000000A1 /* LiteRTLM */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		F5AA000000000000000000A0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -38,6 +42,7 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				F5D0A00300000000000000A1 /* LiteRTLM in Frameworks */,
 			);
 		};
 		F5AA00000000000000000050 /* Frameworks */ = {
@@ -83,6 +88,9 @@
 				000000000000000000000010 /* FM-Playground */,
 			);
 			name = "FM-Playground";
+			packageProductDependencies = (
+				F5D0A00200000000000000A1 /* LiteRTLM */,
+			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* FM-Playground.app */;
 			productType = "com.apple.product-type.application";
@@ -135,6 +143,9 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F5D0A00100000000000000A1 /* XCRemoteSwiftPackageReference "LiteRT-LM" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
@@ -471,6 +482,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F5D0A00100000000000000A1 /* XCRemoteSwiftPackageReference "LiteRT-LM" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google-ai-edge/LiteRT-LM.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.18.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F5D0A00200000000000000A1 /* LiteRTLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F5D0A00100000000000000A1 /* XCRemoteSwiftPackageReference "LiteRT-LM" */;
+			productName = LiteRTLM;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }

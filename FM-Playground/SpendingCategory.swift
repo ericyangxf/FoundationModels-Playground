@@ -7,10 +7,8 @@ import FoundationModels
 /// The model only ever picks cases off this list — guided generation constrains
 /// it to these exact names — so it can never invent a category or misremember a
 /// code. The step from a case to concrete MCC numbers is `codeRanges`,
-/// deterministic Swift the prompt never sees. That split is what keeps 900-odd
-/// codes' worth of knowledge affordable on a small on-device model: the model
-/// does the semantic match ("food shopping" is groceries), the table does the
-/// numbers.
+/// deterministic Swift the prompt never sees: the model does the semantic match
+/// ("food shopping" is groceries), the table does the numbers.
 @Generable(description: "A kind of consumer spending, such as groceries or flights.")
 enum SpendingCategory: CaseIterable {
     // Travel and getting around
@@ -173,27 +171,4 @@ extension SpendingCategory {
     var summary: String {
         "\(title) (\(codeRangeStrings.joined(separator: ", ")))"
     }
-}
-
-/// The list the category session fills in. Categories live in their own
-/// session and their own generable so the taxonomy never crowds the
-/// merchant-and-amount schema.
-///
-/// `spendingWords` is scratch space generated before the list and thrown
-/// away after. Asked for categories straight off, the model often answered
-/// "flights" or "streaming" with an empty list; copying the words out first
-/// gives the pick something to map from.
-@Generable(
-    description: "The kinds of spending a question about the user's own card transactions asks about.",
-    representNilExplicitlyInGeneratedContent: true
-)
-struct CategoryQuery: Equatable, Sendable {
-    @Guide(description: #"The question's words for what kind of thing was bought, copied as written: "flights", "eating out". Null when it has none — a business name, an amount, or a date is not a kind of thing bought."#)
-    var spendingWords: String?
-
-    @Guide(
-        description: #"Every kind of spending the question names, like "groceries" or "flights". Empty when it names none — a specific business such as "Starbucks" is not a kind of spending."#,
-        .maximumCount(3)
-    )
-    var categories: [SpendingCategory]
 }

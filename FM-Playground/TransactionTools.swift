@@ -1,40 +1,58 @@
 import Foundation
 import FoundationModels
 
-/// The one tool the answer session reads the statement through.
+/// The tool the answer session reads the statement through: it filters the
+/// statement and works out the figures.
 ///
-/// It is built around the transactions the question's filters already matched
-/// — the Query tab's parse decides *which* transactions, and the model only
-/// decides *what to see* about them. It hands back data, not prose: counts,
-/// totals and transaction records in a `TransactionLookup`, which the model
-/// turns into the answer itself. The model never sees the rest of the
-/// statement and never does the arithmetic.
+/// The model picks the filters — merchant, categories, amounts and the date
+/// range it worked out from today — and the tool applies them and does the
+/// arithmetic. It hands back data, not prose: counts, totals and transaction
+/// records in a `TransactionLookup`, which the model turns into the answer.
+/// No tool here does date arithmetic; dates arrive already worked out, as
+/// `yyyy-MM-dd` days.
 ///
-/// One tool rather than one per kind of answer, because tool choice was where
-/// the model went wrong: with separate summary, breakdown and list tools it
-/// reached for the breakdown on "average", "largest" and "cheapest" questions
-/// and read a group total back as the answer. Here the figures every
-/// single-number question needs come back on every call, and the two extras —
-/// group totals and a list in a chosen order — are optional arguments that
-/// stay null unless the question asks for them, which is the model's habit
-/// with optional fields.
-nonisolated struct LookUpTransactionsTool: Tool {
-    let name = "lookUpTransactions"
+/// One tool rather than one per kind of answer, so every question costs one
+/// call: the figures a single-number question needs come back every time,
+/// and the two extras — group totals and a list in a chosen order — are
+/// optional arguments left null unless the question asks for them.
+nonisolated struct SearchTransactionsTool: Tool {
+    static let toolName = "searchTransactions"
+    var name: String { Self.toolName }
     let description = """
-        Reads the transactions that match the question's filters. Always returns how many \
-        there are, the total, the average, the largest and smallest, and the earliest and most \
-        recent. Can also return them in a chosen order, or totals by group.
+        Filters the person's card statement and works out figures for the transactions that \
+        match. Always returns how many matched, their total and average, the largest and \
+        smallest, and the earliest and most recent. Can also list them in a chosen order, or \
+        total them by group.
         """
 
-    let transactions: [Transaction]
-    let filters: String
+    let store: TransactionStore
 
-    @Generable(description: "Extras to include with the matching transactions' figures.")
-    struct Arguments {
-        @Guide(description: "Set only when the question asks which merchant, category, city, province, or month comes out on top, or how much was spent in a named city or province. Null otherwise.")
+    @Generable(description: "Which transactions to read, and what to work out about them.")
+    struct Arguments: Equatable {
+        @Guide(description: "The specific business the question names, spelled as written. Null for any business.")
+        var merchant: String?
+
+        /// Optional because "none" is a null to the model as often as it is
+        /// an empty list, and both mean the same.
+        @Guide(description: "The kinds of spending the question names. Empty or null for any kind.", .maximumCount(3))
+        var categories: [SpendingCategory]?
+
+        @Guide(description: "Lowest amount to include, in dollars. Null for no lower limit.")
+        var minimumAmount: Double?
+
+        @Guide(description: "Highest amount to include, in dollars. Null for no upper limit.")
+        var maximumAmount: Double?
+
+        @Guide(description: "First day to include, yyyy-MM-dd. Null when the question sets no start.")
+        var fromDate: String?
+
+        @Guide(description: "Last day to include, yyyy-MM-dd. Null when the question sets no end.")
+        var toDate: String?
+
+        @Guide(description: "Totals by group, highest first. Set only when the question asks which merchant, category, city, province or month comes out on top, or how much was spent in a named city or province. Null otherwise.")
         var groupBy: Grouping?
 
-        @Guide(description: "Set only when the question asks to see or list transactions, or for its last, first, biggest, or smallest few. Null otherwise.")
+        @Guide(description: "Set only when the question asks to see or list transactions, or for its latest, earliest, biggest or smallest few. Null otherwise.")
         var listOrder: ListOrder?
     }
 
@@ -43,8 +61,7 @@ nonisolated struct LookUpTransactionsTool: Tool {
         case merchant, category, city, province, month
     }
 
-    /// Named for the words questions use: "my last 3 rides" is `latest`,
-    /// where `newest` and `oldest` got "last" read as the end of the list.
+    /// Named for the words questions use: "my last 3 rides" is `latest`.
     @Generable(description: "Which transactions a list starts with.")
     enum ListOrder {
         case latest, earliest, largest, smallest
@@ -62,6 +79,8 @@ nonisolated struct LookUpTransactionsTool: Tool {
     static let maximumGroups = 10
 
     func call(arguments: Arguments) async throws -> TransactionLookup {
+        let scope = TransactionScope(arguments)
+        let transactions = store.matching(scope)
         let summary = SpendingSummary(transactions)
 
         var listed: [Transaction] = []
@@ -79,7 +98,7 @@ nonisolated struct LookUpTransactionsTool: Tool {
         }
 
         return TransactionLookup(
-            filtersApplied: filters,
+            filtersApplied: scope.summary,
             matchingTransactionCount: summary.count,
             totalSpent: Money.dollars(summary.totalCents),
             averagePerTransaction: Money.dollars(summary.averageCents),
@@ -89,6 +108,26 @@ nonisolated struct LookUpTransactionsTool: Tool {
             mostRecentTransaction: summary.latest.map(TransactionRecord.init),
             listedTransactions: listed.map(TransactionRecord.init),
             groupTotals: groups
+        )
+    }
+}
+
+extension SearchTransactionsTool.Arguments {
+    /// The arguments that apply `scope`, for code that already holds one.
+    nonisolated init(
+        _ scope: TransactionScope,
+        groupBy: SearchTransactionsTool.Grouping? = nil,
+        listOrder: SearchTransactionsTool.ListOrder? = nil
+    ) {
+        self.init(
+            merchant: scope.merchant,
+            categories: scope.categories,
+            minimumAmount: scope.minimumCents.map(Money.dollars),
+            maximumAmount: scope.maximumCents.map(Money.dollars),
+            fromDate: scope.fromDate,
+            toDate: scope.toDate,
+            groupBy: groupBy,
+            listOrder: listOrder
         )
     }
 }
@@ -144,7 +183,7 @@ nonisolated struct GroupTotal: Equatable, Sendable {
     var transactionCount: Int
 }
 
-extension LookUpTransactionsTool.Grouping {
+extension SearchTransactionsTool.Grouping {
     nonisolated var grouping: SpendingGrouping {
         switch self {
         case .merchant: .merchant
@@ -156,7 +195,7 @@ extension LookUpTransactionsTool.Grouping {
     }
 }
 
-extension LookUpTransactionsTool.ListOrder {
+extension SearchTransactionsTool.ListOrder {
     /// Ties on amount go to the more recent transaction; ties on date to the
     /// later row.
     nonisolated func sorted(_ transactions: [Transaction]) -> [Transaction] {
