@@ -35,8 +35,8 @@ nonisolated struct GemmaLanguageModel: LanguageModel {
     ///     the KV cache the engine allocates.
     ///   - thinkingTokenBudget: The most a turn may spend thinking before the
     ///     decoder closes the thought and moves on to the answer.
-    ///   - speculativeDecoding: Whether turns whose output isn't held to a
-    ///     schema decode with the drafter. Turns that are held to one never do.
+    ///   - speculativeDecoding: Whether prose turns decode with the drafter.
+    ///     Structured output — guided answers and tool calls — never does.
     init(
         modelPath: String,
         contextSize: Int = 8192,
@@ -148,21 +148,26 @@ nonisolated final class GemmaExecutor: LanguageModelExecutor {
             nil
         }
 
-        // Structured output is written freely first, with speculative
-        // decoding, and only rewritten under llguidance when it wouldn't
-        // decode. The constraint has two costs in LiteRT-LM 0.18.1: it can't
-        // run with speculation (drafted tokens slip past the grammar and the
-        // JSON dissolves into whitespace), and it masks some of Gemma's
-        // tokens at value boundaries, so a merchant the model named in its
-        // thinking comes out as `null`. Free JSON keeps every value the model
-        // meant but now and then leaves out a key or writes Gemma's own tool
-        // call syntax — which is what the constrained pass is for.
+        // Structured output is written freely first and only rewritten under
+        // llguidance when it wouldn't decode. The constraint has two costs in
+        // LiteRT-LM 0.18.1: it can't run with speculation (drafted tokens
+        // slip past the grammar and the JSON dissolves into whitespace), and
+        // it masks some of Gemma's tokens at value boundaries, so a merchant
+        // the model named in its thinking comes out as `null`. Free JSON
+        // keeps every value the model meant but now and then leaves out a key
+        // or writes Gemma's own tool call syntax — which is what the
+        // constrained pass is for.
+        //
+        // Only prose decodes with the drafter. With it, dates in structured
+        // output came back with digits doubled or dropped ("206-7-6",
+        // "2025-012-01") more often than without.
+        let structured = constraint != nil
         var pass = try await decode(
             turn,
             request: request,
             on: engine,
             constraint: nil,
-            speculative: configuration.speculativeDecoding,
+            speculative: configuration.speculativeDecoding && !structured,
             streamingTextInto: streamsText ? channel : nil
         )
         var retried = false
