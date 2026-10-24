@@ -290,11 +290,7 @@ extension TransactionAnswerTests {
             let parsedDates = "\(answer.scope.fromDate ?? "nil") to \(answer.scope.toDate ?? "nil")"
             let wantedDates = "\(expectedScope.fromDate ?? "nil") to \(expectedScope.toDate ?? "nil")"
             if datesOnly {
-                let matched = answer.parseMetrics.datePhrase.map { "\u{201C}\($0)\u{201D}" } ?? "no date phrase"
-                print("  SwiftyChronoX: read \(parsedDates) from \(matched), expected \(wantedDates)")
-                withKnownIssue("SwiftyChronoX resolved the wrong date range") {
-                    Issue.record("SwiftyChronoX read \(parsedDates) from \(matched); expected \(wantedDates)")
-                }
+                Issue.record("parse read the dates as \(parsedDates); expected \(wantedDates)")
             } else {
                 Issue.record("""
                     parse picked \(actualIDs.count) transactions instead of \(expectedIDs.count): \

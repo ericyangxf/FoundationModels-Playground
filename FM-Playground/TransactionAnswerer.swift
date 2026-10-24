@@ -3,8 +3,8 @@ import FoundationModels
 
 /// Answers a question about the bundled statement in two steps.
 ///
-/// First the Query tab's own parse — SwiftyChronoX for the dates, the model
-/// for merchant, amounts and categories — turns the question into filters.
+/// First the Query tab's own parse — the model reading merchant, amounts,
+/// dates and categories — turns the question into filters.
 /// Then a second model session, holding a tool built around the transactions
 /// those filters matched, works out what the question asks about them and
 /// writes the answer from the tool's figures.
@@ -89,7 +89,6 @@ final class TransactionAnswerer {
         let reference = reference
         let (parsed, parseMetrics) = try await parser.parsedQuery(
             for: question,
-            using: .swiftyChronoX,
             reference: reference
         )
         let scope = TransactionScope(parsed)

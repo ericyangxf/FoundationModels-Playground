@@ -1,30 +1,15 @@
 import FoundationModels
 
-/// The filter set we ask the on-device model to pull out of a natural-language
-/// spending question.
+/// The filter set a natural-language spending question is turned into.
 ///
 /// Every field is optional because any one query only mentions a few of them.
-/// `representNilExplicitlyInGeneratedContent` makes the model emit an explicit
-/// null for the rest instead of quietly dropping the key, which is what keeps
-/// "the query said nothing about this" distinguishable from a malformed answer.
-@Generable(
-    description: "Search filters extracted from a question about the user's own card transactions.",
-    representNilExplicitlyInGeneratedContent: true
-)
 struct TransactionQuery: Equatable, Sendable {
-    @Guide(description: #"The specific business named in the question, spelled normally: "Starbucks", "Canadian Tire". Null if no business is named — a word for a kind of spending is not a business."#)
     var merchantName: String?
-
-    @Guide(description: #"Minimum in dollars: "above $N", "over $N", "more than $N", or the low end of "between". Null for "under", "less than", "around", or no comparison."#, .minimum(0))
     var fromAmount: Double?
-
-    @Guide(description: #"Maximum in dollars: "under $N", "less than $N", or the high end of "between". Null for "above", "over", "more than", "around", or no comparison."#, .minimum(0))
     var toAmount: Double?
-
-    @Guide(description: "First day of the date range, formatted yyyy-MM-dd. Null if the question implies no start date.")
+    /// First day of the date range, formatted yyyy-MM-dd.
     var fromDate: String?
-
-    @Guide(description: "Last day of the date range, formatted yyyy-MM-dd. Null if the question implies no end date.")
+    /// Last day of the date range, formatted yyyy-MM-dd.
     var toDate: String?
 }
 
@@ -37,11 +22,12 @@ extension TransactionQuery {
     }
 }
 
-/// The half of the filter set the model still owns once SwiftyChronoX is
-/// handling dates.
+/// What the on-device model generates for a question.
 ///
-/// Dropping the two date fields takes the resolved-range block out of the
-/// instructions along with them, which is where most of the prompt went.
+/// `representNilExplicitlyInGeneratedContent` makes the model emit an explicit
+/// null for anything the question leaves out instead of quietly dropping the
+/// key, which is what keeps "the query said nothing about this"
+/// distinguishable from a malformed answer.
 ///
 /// `spendingKind`, `place` and `amountPhrase` are relief valves, each
 /// generated before the fields it protects: the model wants to record
@@ -50,10 +36,10 @@ extension TransactionQuery {
 /// three away — categories come from their own session, and the bounds carry
 /// the numbers.
 @Generable(
-    description: "Merchant and amount filters extracted from a question about the user's own card transactions.",
+    description: "Search filters extracted from a question about the user's own card transactions.",
     representNilExplicitlyInGeneratedContent: true
 )
-struct MerchantAmountQuery: Equatable, Sendable {
+struct GeneratedQuery: Equatable, Sendable {
     @Guide(description: #"The kind of spending the question names, copied as written: "grocery", "flights and hotels". Null when it names none."#)
     var spendingKind: String?
 
@@ -71,17 +57,23 @@ struct MerchantAmountQuery: Equatable, Sendable {
 
     @Guide(description: #"Maximum in dollars: "under $N", "less than $N", or the high end of "between". Null for "above", "over", "more than", "around", or no comparison."#, .minimum(0))
     var toAmount: Double?
+
+    @Guide(description: "First day of the date range, formatted yyyy-MM-dd. Null if the question implies no start date.")
+    var fromDate: String?
+
+    @Guide(description: "Last day of the date range, formatted yyyy-MM-dd. Null if the question implies no end date.")
+    var toDate: String?
 }
 
 extension TransactionQuery {
-    /// Stitches the model's half back together with the range SwiftyChronoX read.
-    init(_ query: MerchantAmountQuery, dates: ChronoDateResolver.Resolution) {
+    /// Keeps the filters and drops the relief valves.
+    init(_ query: GeneratedQuery) {
         self.init(
             merchantName: query.merchantName,
             fromAmount: query.fromAmount,
             toAmount: query.toAmount,
-            fromDate: dates.fromDate,
-            toDate: dates.toDate
+            fromDate: query.fromDate,
+            toDate: query.toDate
         )
     }
 }
