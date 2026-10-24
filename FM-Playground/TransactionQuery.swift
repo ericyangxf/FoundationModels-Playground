@@ -35,6 +35,10 @@ extension TransactionQuery {
 /// own they land in `merchantName` or the wrong bound. The parse throws all
 /// three away — categories come from their own session, and the bounds carry
 /// the numbers.
+///
+/// Dates aren't here at all: `DateAgent` works them out in sessions of its
+/// own, with calendar tools, so this schema never offers a date field for the
+/// model to fill when the question names no time.
 @Generable(
     description: "Search filters extracted from a question about the user's own card transactions.",
     representNilExplicitlyInGeneratedContent: true
@@ -58,22 +62,42 @@ struct GeneratedQuery: Equatable, Sendable {
     @Guide(description: #"Maximum in dollars: "under $N", "less than $N", or the high end of "between". Null for "above", "over", "more than", "around", or no comparison."#, .minimum(0))
     var toAmount: Double?
 
-    @Guide(description: "First day of the date range, formatted yyyy-MM-dd. Null if the question implies no start date.")
-    var fromDate: String?
+}
 
-    @Guide(description: "Last day of the date range, formatted yyyy-MM-dd. Null if the question implies no end date.")
-    var toDate: String?
+/// The same filters with the merchant asked first — the second reading of
+/// the merchant-and-amount pair.
+///
+/// Asked after `spendingKind`, the merchant goes missing whenever the
+/// business comes with what was bought: "my most expensive Uber ride" puts
+/// "Uber ride" in `spendingKind` and leaves `merchantName` null. Asked first,
+/// it finds "Uber" there — and also writes a kind of store as a merchant,
+/// which is why `spendingKind` goes first in the other reading. Where the
+/// two agree, that's the merchant; where they don't, the parse declines.
+@Generable(
+    description: "Search filters extracted from a question about the user's own card transactions.",
+    representNilExplicitlyInGeneratedContent: true
+)
+struct GeneratedQueryMerchantFirst: Equatable, Sendable {
+    @Guide(description: #"The specific business named in the question, spelled normally: "Starbucks", "Canadian Tire". Null if no business is named — a kind of spending is not a business."#)
+    var merchantName: String?
+
+    @Guide(description: #"The kind of spending the question names, copied as written: "grocery", "flights and hotels". Null when it names none."#)
+    var spendingKind: String?
+
+    @Guide(description: #"The city, province, or country the question names, copied as written: "Halifax", "Ontario". Null when it names none."#)
+    var place: String?
 }
 
 extension TransactionQuery {
-    /// Keeps the filters and drops the relief valves.
-    init(_ query: GeneratedQuery) {
+    /// Keeps the filters, drops the relief valves, and takes the merchant the
+    /// pair of readings settled on and the dates the date agent did.
+    init(_ query: GeneratedQuery, merchant: String?, dates: CalendarRange?) {
         self.init(
-            merchantName: query.merchantName,
+            merchantName: merchant,
             fromAmount: query.fromAmount,
             toAmount: query.toAmount,
-            fromDate: query.fromDate,
-            toDate: query.toDate
+            fromDate: dates?.fromDate,
+            toDate: dates?.toDate
         )
     }
 }

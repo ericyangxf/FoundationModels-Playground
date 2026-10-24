@@ -183,13 +183,39 @@ extension SpendingCategory {
 /// away after. Asked for categories straight off, the model often answered
 /// "flights" or "streaming" with an empty list; copying the words out first
 /// gives the pick something to map from.
+/// Either of the two category readings.
+nonisolated protocol CategoryReading: Generable, Sendable {
+    var categories: [SpendingCategory] { get }
+}
+
 @Generable(
     description: "The kinds of spending a question about the user's own card transactions asks about.",
     representNilExplicitlyInGeneratedContent: true
 )
-struct CategoryQuery: Equatable, Sendable {
+struct CategoryQuery: CategoryReading, Equatable {
     @Guide(description: #"The question's words for what kind of thing was bought, copied as written: "flights", "eating out". Null when it has none — a business name, an amount, or a date is not a kind of thing bought."#)
     var spendingWords: String?
+
+    @Guide(
+        description: #"Every kind of spending the question names, like "groceries" or "flights". Empty when it names none — a specific business such as "Starbucks" is not a kind of spending."#,
+        .maximumCount(3)
+    )
+    var categories: [SpendingCategory]
+}
+
+/// The second category reading: its scratch field also takes an outing —
+/// "went to the movies" — where the first one's "kind of thing bought"
+/// left the list empty. It reads more into questions than the first does,
+/// so the two are compared rather than either one trusted: where they
+/// agree that's the list, and where they don't, the parse has to settle it
+/// or decline.
+@Generable(
+    description: "The kinds of spending a question about the user's own card transactions asks about.",
+    representNilExplicitlyInGeneratedContent: true
+)
+struct CategoryQueryOutings: CategoryReading, Equatable {
+    @Guide(description: #"What the money went on — a kind of thing bought, a kind of place, or an outing such as a trip or a night out — in the question's own words. Null when it names none — a business name, an amount, or a date is not what the money went on."#)
+    var spentOn: String?
 
     @Guide(
         description: #"Every kind of spending the question names, like "groceries" or "flights". Empty when it names none — a specific business such as "Starbucks" is not a kind of spending."#,

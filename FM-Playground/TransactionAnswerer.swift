@@ -50,7 +50,7 @@ final class TransactionAnswerer {
     /// Warms the parse sessions. The answer session can't be warmed ahead of
     /// time — its tool is built around the transactions a question matches.
     func prewarm() {
-        parser.prewarm(reference: reference)
+        parser.prewarm()
     }
 
     func ask(_ text: String) {
@@ -89,7 +89,10 @@ final class TransactionAnswerer {
         let reference = reference
         let (parsed, parseMetrics) = try await parser.parsedQuery(
             for: question,
-            reference: reference
+            reference: reference,
+            resolve: { [store, model] question, about, candidates in
+                try await Self.resolve(question, about: about, among: candidates, store: store, model: model)
+            }
         )
         let scope = TransactionScope(parsed)
         let matches = store.matching(scope)
@@ -98,7 +101,7 @@ final class TransactionAnswerer {
         let session = LanguageModelSession(profile: AnswerProfile(
             model: model,
             instructions: Self.instructions,
-            tool: LookUpTransactionsTool(transactions: matches, filters: filters)
+            tool: LookUpTransactionsTool(transactions: matches, filters: filters, fixedGroupings: scope.fixedGroupings)
         ))
 
         let clock = ContinuousClock()
@@ -106,6 +109,20 @@ final class TransactionAnswerer {
         let response = try await session.respond(to: Self.prompt(question: question, filters: filters))
         let latency = clock.now - start
         let usage = response.usage
+
+        // Comparing months under dates that cover one: the parse's dates and
+        // the answer's grouping can't both be right. Dates every reading
+        // agreed on win — the grouping was a stray, and the tool already
+        // answered without it. Dates the readings split over don't, and
+        // neither is shown.
+        if Self.groupedByMonth(response.transcriptEntries), scope.fixedGroupings.contains(.month),
+           parseMetrics.dateTrace?.confidence != .unanimous {
+            let (from, to) = (scope.fromDate ?? "", scope.toDate ?? "")
+            throw AnswerDeclined(
+                reason: "the question compares months, but its dates were read as a single month",
+                trace: "dates \(from) to \(to); lookUpTransactions grouped by month"
+            )
+        }
 
         return TransactionAnswer(
             question: question,
@@ -120,6 +137,73 @@ final class TransactionAnswerer {
             cachedInputTokens: usage.input.cachedTokenCount,
             outputTokens: usage.output.totalTokenCount
         )
+    }
+
+    /// Reason over what each reading would search: the arbiter sees the
+    /// question and, for each reading, how many transactions it leaves and
+    /// which merchants they're at — and picks one, by label, asked in both
+    /// orders. A pick that changes with the order declines.
+    ///
+    /// Shown only the question and the two names, the arbiter took the name
+    /// — "Pharmacy" for "Pharmacy spending" — two times in five; shown what
+    /// each reading would search, it settled all five.
+    private nonisolated static func resolve(
+        _ question: String,
+        about: QueryParser.Disagreement,
+        among candidates: [ParsedQuery],
+        store: TransactionStore,
+        model: SystemLanguageModel
+    ) async throws -> Int? {
+        let labels = candidates.map { candidate in
+            switch about {
+            case .merchant:
+                candidate.filters.merchantName.map { "merchant: \($0)" } ?? "no merchant"
+            case .categories:
+                candidate.categories.isEmpty
+                    ? "no category"
+                    : "categories: " + candidate.categories.map(\.title).joined(separator: ", ")
+            }
+        }
+        let lines = zip(labels, candidates).map { label, candidate in
+            let scope = TransactionScope(candidate)
+            let matches = store.matching(scope)
+            let merchants = TransactionStore.breakdown(matches, by: .merchant)
+                .prefix(5)
+                .map { "\($0.name) \($0.count)" }
+                .joined(separator: ", ")
+            return "- \(label): \(scope.summary) → \(matches.count) transactions" + (merchants.isEmpty ? "" : " (\(merchants))")
+        }
+        let arbiter = LabelledChoice(model: model, instructions: arbiterInstructions(about))
+        async let forward = arbiter.pick(among: labels, prompt: "Question: \(question)\nReadings:\n" + lines.joined(separator: "\n"))
+        async let backward = arbiter.pick(
+            among: labels.reversed(),
+            prompt: "Question: \(question)\nReadings:\n" + lines.reversed().joined(separator: "\n")
+        )
+        let picks = try await [forward, backward]
+        guard picks[0] == picks[1] else { return nil }
+        return labels.firstIndex(of: picks[0])
+    }
+
+    private nonisolated static func arbiterInstructions(_ about: QueryParser.Disagreement) -> String {
+        let subject = switch about {
+        case .merchant: "whether it names a merchant"
+        case .categories: "which kinds of spending it names"
+        }
+        return """
+            Two readings of a question about the user's own card spending disagree on \(subject). \
+            Each reading shows the transactions it would search and the merchants they are at. \
+            Pick the reading whose transactions are the ones the question asks about.
+            """
+    }
+
+    /// Whether any lookup in the turn asked for groups by month.
+    private static func groupedByMonth(_ entries: some Collection<Transcript.Entry>) -> Bool {
+        for case .toolCalls(let calls) in entries {
+            for call in calls where (try? call.arguments.value(String?.self, forProperty: "groupBy")) == "month" {
+                return true
+            }
+        }
+        return false
     }
 
     private static func prompt(question: String, filters: String) -> String {
@@ -145,19 +229,26 @@ final class TransactionAnswerer {
         - Show, list, or what was bought: add one line per transaction in listedTransactions, \
         each with its date, merchant, and amount.
         - When matchingTransactionCount is 0, say that no transactions matched.
+        - When the data comes with a note, read it before answering; it may say to call again.
 
         Write amounts with a dollar sign and cents, and dates as the month name, day, and year.
         """
 }
 
-/// The answer session's setup: one tool, called exactly once.
+/// The answer session's setup: one tool, called once — or twice, when the
+/// first answer came with a note.
+///
+/// The second call is required, not left to the model: offered the choice,
+/// it answered "where do I spend the most on groceries" from the note-bearing
+/// figures without regrouping. The note comes with the full figures, so a
+/// stray grouping on a count question costs a call, not the answer.
 ///
 /// Left to choose, the model sometimes skipped the tool and invented figures —
 /// mostly on yes-or-no questions. A plain `.required` tool-calling mode fixes
 /// that but holds for every step of the turn, so the model called the tool
 /// again and again until the context window overflowed. This profile requires
-/// the call only until the transcript holds a tool output, then turns tool
-/// calling off so the next step is the answer.
+/// the first call, and a second one when the first output carried a note,
+/// then turns tool calling off so the next step is the answer.
 struct AnswerProfile: LanguageModelSession.DynamicProfile {
     @SessionProperty(\.history) var history
 
@@ -165,10 +256,25 @@ struct AnswerProfile: LanguageModelSession.DynamicProfile {
     let instructions: String
     let tool: LookUpTransactionsTool
 
-    var body: some DynamicProfile {
-        let hasLookedUp = history.contains { entry in
-            if case .toolOutput = entry { true } else { false }
+    /// Every lookup the tool has handed back so far.
+    private var lookups: [TransactionLookup] {
+        var lookups: [TransactionLookup] = []
+        for case .toolOutput(let output) in history {
+            for case .structure(let segment) in output.segments {
+                if let lookup = try? TransactionLookup(segment.content) { lookups.append(lookup) }
+            }
         }
+        return lookups
+    }
+
+    private var mode: GenerationOptions.ToolCallingMode {
+        let lookups = lookups
+        if lookups.isEmpty { return .required }
+        if lookups.count == 1, lookups[0].note != nil { return .required }
+        return .disallowed
+    }
+
+    var body: some DynamicProfile {
         LanguageModelSession.Profile {
             Instructions(instructions)
             tool
@@ -176,7 +282,7 @@ struct AnswerProfile: LanguageModelSession.DynamicProfile {
         .model(model)
         // Greedy sampling keeps repeated runs of the same question comparable.
         .samplingMode(.greedy)
-        .toolCallingMode(hasLookedUp ? .disallowed : .required)
+        .toolCallingMode(mode)
     }
 }
 

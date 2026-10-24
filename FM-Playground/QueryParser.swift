@@ -25,11 +25,21 @@ final class QueryParser {
         /// Why the category list came back empty-handed, when the reason is an
         /// error over there rather than a question with no category in it.
         var categoryNote: String?
+        /// What the date agent read, called, and observed. Nil when it failed.
+        var dateTrace: DateAgent.Trace?
+        /// Why the dates came back empty, when the reason is an error in the
+        /// date agent rather than a question that names no time.
+        var dateNote: String?
+        /// How the two merchant readings went, when they disagreed.
+        var merchantNote: String?
 
         var latencyDescription: String { latency.latencyDescription }
 
         /// Everything the main card should say under its numbers.
-        var footnote: String? { categoryNote }
+        var footnote: String? {
+            let notes = [merchantNote, dateTrace.map { "Dates — \($0.summary)" }, dateNote, categoryNote].compactMap { $0 }
+            return notes.isEmpty ? nil : notes.joined(separator: "\n")
+        }
     }
 
     private(set) var phase: Phase = .idle
@@ -48,18 +58,11 @@ final class QueryParser {
     /// A session built and warmed ahead of the next question.
     ///
     /// Each question gets its own session so one parse can't colour the next —
-    /// a shared transcript would let a previous merchant or date range leak into
+    /// a shared transcript would let a previous merchant or amount leak into
     /// the following answer. Warming the next one up front keeps that isolation
-    /// from showing up as latency.
-    ///
-    /// The instructions spell out the date ranges for one day, so a warm
-    /// session is only good for the day it was built for.
-    private struct WarmSession {
-        let session: LanguageModelSession
-        let day: Date
-    }
-
-    private var ready: WarmSession?
+    /// from showing up as latency. Dates live in the date agent's own
+    /// sessions, so these instructions never change from one day to the next.
+    private var ready: LanguageModelSession?
 
     /// A warm session for the category parse. Day-independent, since its
     /// instructions never change.
@@ -75,10 +78,7 @@ final class QueryParser {
     var modelName: String { model.variant.displayName }
 
     /// Builds and warms what the next question will need, if it isn't warm already.
-    ///
-    /// `reference` is the day the next question will be resolved against —
-    /// today on the Query tab, the statement date on the Transactions tab.
-    func prewarm(reference: DateReference? = nil) {
+    func prewarm() {
         guard model.isAvailable else { return }
 
         if categoryReady == nil {
@@ -90,15 +90,14 @@ final class QueryParser {
             categoryReady = session
         }
 
-        let reference = reference ?? DateReference()
-        guard ready?.day != reference.today else { return }
-
-        let session = LanguageModelSession(
-            model: model,
-            instructions: Instructions(Self.instructions(for: reference))
-        )
-        session.prewarm()
-        ready = WarmSession(session: session, day: reference.today)
+        if ready == nil {
+            let session = LanguageModelSession(
+                model: model,
+                instructions: Instructions(Self.instructions)
+            )
+            session.prewarm()
+            ready = session
+        }
     }
 
     func parse(_ text: String) {
@@ -146,18 +145,39 @@ final class QueryParser {
     /// The view goes in through `parse(_:)`, which owns the phase and the
     /// cancellation; the accuracy tests call this directly, so what they measure
     /// is the same path the app takes.
+    ///
+    /// `resolve` is how a caller with something to observe — the
+    /// Transactions tab has the statement — settles two readings that
+    /// disagree. Without one, a disagreement declines.
     func parsedQuery(
         for question: String,
-        reference: DateReference
+        reference: DateReference,
+        resolve: Resolver? = nil
     ) async throws -> (ParsedQuery, Metrics) {
-        let session = takeSession(for: reference)
+        let session = takeSession()
 
         // Categories come from a session of their own: the taxonomy is a whole
         // schema by itself, and a separate context window keeps it from
-        // crowding the merchant, amount and date parse. Started first so it
-        // runs concurrently with the respond below.
+        // crowding the merchant and amount parse. Started first so it runs
+        // concurrently with the respond below.
         let categorySession = takeCategorySession()
-        async let categoryOutcome = Self.parseCategories(question, in: categorySession)
+        async let categoryOutcome = Self.parseCategories(question, in: categorySession, as: CategoryQuery.self)
+        let outingsSession = LanguageModelSession(model: model, instructions: Instructions(Self.categoryInstructions))
+        async let outingsOutcome = Self.parseCategories(question, in: outingsSession, as: CategoryQueryOutings.self)
+
+        // Dates come from the date agent's reason-act-observe loop, also
+        // concurrent with the main parse.
+        let dateAgent = DateAgent(model: model, arithmetic: reference.arithmetic)
+        async let dateOutcome = Self.parseDates(question, with: dateAgent)
+
+        // The merchant's second reading, with the merchant asked first.
+        let merchantFirstSession = LanguageModelSession(model: model, instructions: Instructions(Self.instructions))
+        async let merchantFirst = merchantFirstSession.respond(
+            to: question,
+            generating: GeneratedQueryMerchantFirst.self,
+            options: GenerationOptions(samplingMode: .greedy),
+            contextOptions: ContextOptions(includeSchemaInPrompt: true)
+        )
 
         let clock = ContinuousClock()
         let start = clock.now
@@ -175,28 +195,73 @@ final class QueryParser {
         // Clocked before the category await, so this stays the main run's own
         // time even when the second session finishes later.
         let latency = clock.now - start
-        let outcome = await categoryOutcome
+        var outcome = await categoryOutcome
+        let outings = await outingsOutcome
+        let dates = try await dateOutcome
+        let readings = [response.content.merchantName, try await merchantFirst.content.merchantName]
+            .map { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .map { $0?.isEmpty == false ? $0 : nil }
+        func parse(merchant: String?) -> ParsedQuery {
+            ParsedQuery(
+                filters: TransactionQuery(response.content, merchant: merchant, dates: dates.trace?.range),
+                categories: outcome.categories
+            )
+        }
+        var merchantNote: String?
+        var parsed: ParsedQuery
+        if Self.sameMerchant(readings[0], readings[1]) {
+            parsed = parse(merchant: readings[0])
+        } else {
+            let labels = readings.map { $0.map { "“\($0)”" } ?? "none" }
+            merchantNote = "Merchant — readings \(labels.joined(separator: " / "))"
+            let candidates = readings.map(parse(merchant:))
+            guard let resolve, let index = try await resolve(question, .merchant, candidates) else {
+                throw AnswerDeclined(reason: "the two readings of the merchant disagreed", trace: merchantNote ?? "")
+            }
+            merchantNote? += ", resolved: \(labels[index])"
+            parsed = candidates[index]
+        }
+
+        // Categories only count when no merchant does, and only two
+        // readings that both came back can disagree.
+        if parsed.filters.merchantName == nil, outcome.run != nil, outings.run != nil,
+           Set(outcome.categories) != Set(outings.categories) {
+            let lists = [outcome.categories, outings.categories]
+            let labels = lists.map { $0.isEmpty ? "none" : $0.map(\.title).joined(separator: ", ") }
+            var note = "Categories — readings \(labels.joined(separator: " / "))"
+            let candidates = lists.map { ParsedQuery(filters: parsed.filters, categories: $0) }
+            guard let resolve, let index = try await resolve(question, .categories, candidates) else {
+                throw AnswerDeclined(reason: "the two readings of the categories disagreed", trace: note)
+            }
+            note += ", resolved: \(labels[index])"
+            parsed = candidates[index]
+            outcome.categories = lists[index]
+            outcome.note = [outcome.note, note].compactMap { $0 }.joined(separator: "\n")
+        }
         return (
-            ParsedQuery(filters: TransactionQuery(response.content), categories: outcome.categories),
+            parsed,
             Metrics(
                 latency: latency,
                 inputTokens: usage.input.totalTokenCount,
                 cachedInputTokens: usage.input.cachedTokenCount,
                 outputTokens: usage.output.totalTokenCount,
                 categoryRun: outcome.run,
-                categoryNote: outcome.note
+                categoryNote: outcome.note,
+                dateTrace: dates.trace,
+                dateNote: dates.note,
+                merchantNote: merchantNote
             )
         )
     }
 
-    private func takeSession(for reference: DateReference) -> LanguageModelSession {
-        if let ready, ready.day == reference.today {
+    private func takeSession() -> LanguageModelSession {
+        if let ready {
             self.ready = nil
-            return ready.session
+            return ready
         }
         return LanguageModelSession(
             model: model,
-            instructions: Instructions(Self.instructions(for: reference))
+            instructions: Instructions(Self.instructions)
         )
     }
 
@@ -214,16 +279,17 @@ final class QueryParser {
     /// Runs the category question through its own session, always coming back
     /// with an answer — a failure over here downgrades to "no categories" with
     /// a note, rather than sinking the parse carrying merchant and amounts.
-    private nonisolated static func parseCategories(
+    private nonisolated static func parseCategories<Reading: CategoryReading>(
         _ question: String,
-        in session: LanguageModelSession
+        in session: LanguageModelSession,
+        as reading: Reading.Type
     ) async -> CategoryOutcome {
         let clock = ContinuousClock()
         let start = clock.now
         do {
             let response = try await session.respond(
                 to: question,
-                generating: CategoryQuery.self,
+                generating: Reading.self,
                 options: GenerationOptions(samplingMode: .greedy),
                 contextOptions: ContextOptions(includeSchemaInPrompt: true)
             )
@@ -247,12 +313,59 @@ final class QueryParser {
         }
     }
 
-    private static func instructions(for reference: DateReference) -> String {
-        """
+    /// Whether two merchant readings agree — the same name, or none from
+    /// both.
+    ///
+    /// The two readings fail in opposite directions. Asked after
+    /// `spendingKind`, the merchant goes missing when the business comes with
+    /// what was bought ("my last Uber ride"); asked first, a kind of store or
+    /// a guess turns up as one ("Pharmacy spending", "Shell" for "which gas
+    /// station"). Over the 110 questions the model suites ask, each was right
+    /// 107 times, they never agreed on a wrong merchant, and they disagreed in
+    /// exactly the six questions one of them got wrong. An arbiter shown only
+    /// the question and both names settled those six right twice — it
+    /// favours the name — so a disagreement needs something to observe.
+    private nonisolated static func sameMerchant(_ a: String?, _ b: String?) -> Bool {
+        switch (a, b) {
+        case (nil, nil): true
+        case let (a?, b?): TransactionScope.merchant(a, matches: b)
+        default: false
+        }
+    }
+
+    /// Runs the date agent. An error over there downgrades to no dates with
+    /// a note, the way the category session does — except a declined answer,
+    /// which sinks the parse: dropping the dates would turn "couldn't tell
+    /// when" into "any time", a wrong answer of its own.
+    private nonisolated static func parseDates(
+        _ question: String,
+        with agent: DateAgent
+    ) async throws -> (trace: DateAgent.Trace?, note: String?) {
+        do {
+            return (try await agent.run(question), nil)
+        } catch let declined as AnswerDeclined {
+            throw declined
+        } catch is CancellationError {
+            return (nil, nil)
+        } catch {
+            return (nil, "Date agent failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// What two disagreeing readings were about.
+    enum Disagreement: Sendable {
+        case merchant, categories
+    }
+
+    /// Settles two readings that disagree, given the parse each would make:
+    /// the index of the one to keep, or nil to decline.
+    typealias Resolver = @Sendable (_ question: String, _ about: Disagreement, _ candidates: [ParsedQuery]) async throws -> Int?
+
+    private static let instructions = """
         You turn a person's question about their own card transactions into search filters.
 
         Fill in only what the question actually says. Anything it does not mention stays \
-        null — never invent a merchant, an amount, or a date.
+        null — never invent a merchant or an amount.
 
         A question can name a specific business — "Starbucks", "Canadian Tire" — or only \
         a kind of spending — "grocery", "flights". The business goes in merchantName, \
@@ -269,19 +382,7 @@ final class QueryParser {
         - "under $N", "less than $N" -> fromAmount null, toAmount N
         - "between $N and $M" -> fromAmount N, toAmount M
         - a bare amount, or a vague one like "around $N" -> both null
-
-        DATES are always formatted yyyy-MM-dd. Do not work any date out yourself. Today is \
-        \(reference.todayString), and every range you might need is already resolved here — \
-        find the one the question refers to and copy its two dates exactly:
-
-        \(reference.resolvedRanges)
-
-        An open-ended phrase — "since", "from the beginning of", "so far this" — starts at that \
-        period's first day and ends today, \(reference.todayString).
-
-        If the question mentions no time at all, leave both dates null.
         """
-    }
 
     /// The category session's whole prompt. The taxonomy itself rides in the
     /// generated schema, not here.
@@ -328,7 +429,7 @@ nonisolated struct CategoryRun: Equatable, Sendable {
     @MainActor var latencyDescription: String { latency.latencyDescription }
 }
 
-/// Whatever the category session came back with.
+/// Whatever a category session came back with.
 nonisolated struct CategoryOutcome: Sendable {
     var categories: [SpendingCategory] = []
     var run: CategoryRun?

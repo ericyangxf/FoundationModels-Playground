@@ -18,6 +18,23 @@ import FoundationModels
 /// group totals and a list in a chosen order — are optional arguments that
 /// stay null unless the question asks for them, which is the model's habit
 /// with optional fields.
+///
+/// What comes back is shaped by what was asked. Ask for groups and the
+/// single-transaction extremes are left out: with both in front of it the
+/// model answered "which merchant" with the largest transaction's merchant
+/// and amount. A grouping along a line the filters already fixed — by
+/// merchant when they name one — would be a single row equal to the totals,
+/// so it's answered as no grouping. With a merchant named, the question is
+/// about that merchant and a merchant grouping is a stray; so is a month
+/// grouping when the dates fall inside one month, and any such grouping
+/// asked for beside a list order, which says the question is about single
+/// transactions ("biggest grocery bill"). Otherwise — one category
+/// picked and a category grouping alone — it usually means "where within
+/// it", so the answer carries a note naming the groupings that would tell the
+/// matches apart, and the session calls once more. (A figure-less problem in place of the
+/// figures derailed counts the model had asked for with a stray `groupBy`;
+/// a note after every stray merchant grouping cost dates and amounts the
+/// second answer then left out.)
 nonisolated struct LookUpTransactionsTool: Tool {
     let name = "lookUpTransactions"
     let description = """
@@ -28,10 +45,14 @@ nonisolated struct LookUpTransactionsTool: Tool {
 
     let transactions: [Transaction]
     let filters: String
+    /// The groupings the filters leave a single group in: `.merchant` when
+    /// they name a merchant, `.category` when they pick one category,
+    /// `.month` when the dates fall inside one month.
+    var fixedGroupings: Set<Grouping> = []
 
     @Generable(description: "Extras to include with the matching transactions' figures.")
     struct Arguments {
-        @Guide(description: "Set only when the question asks which merchant, category, city, province, or month comes out on top, or how much was spent in a named city or province. Null otherwise.")
+        @Guide(description: "Set only when the question asks which merchant, category, city, province, or month comes out on top — or where the most went — or how much was spent in a named city or province. Null otherwise.")
         var groupBy: Grouping?
 
         @Guide(description: "Set only when the question asks to see or list transactions, or for its last, first, biggest, or smallest few. Null otherwise.")
@@ -39,7 +60,7 @@ nonisolated struct LookUpTransactionsTool: Tool {
     }
 
     @Generable(description: "A way to group transactions.")
-    enum Grouping {
+    enum Grouping: CaseIterable {
         case merchant, category, city, province, month
     }
 
@@ -62,7 +83,15 @@ nonisolated struct LookUpTransactionsTool: Tool {
     static let maximumGroups = 10
 
     func call(arguments: Arguments) async throws -> TransactionLookup {
+        let grouping = arguments.groupBy.flatMap { fixedGroupings.contains($0) ? nil : $0 }
+        var note: String?
+        if let asked = arguments.groupBy, grouping == nil, asked == .category, arguments.listOrder == nil {
+            let others = Grouping.allCases.filter { !fixedGroupings.contains($0) }.map { "\($0)" }
+            note = "The filters already pick one \(asked), so grouping by \(asked) is one row — these "
+                + "figures are for all of it. To see where within it, group by \(others.joined(separator: ", "))."
+        }
         let summary = SpendingSummary(transactions)
+        let grouped = grouping != nil
 
         var listed: [Transaction] = []
         if let order = arguments.listOrder {
@@ -72,23 +101,24 @@ nonisolated struct LookUpTransactionsTool: Tool {
         }
 
         var groups: [GroupTotal] = []
-        if let grouping = arguments.groupBy?.grouping {
+        if let grouping = grouping?.grouping {
             groups = TransactionStore.breakdown(transactions, by: grouping)
                 .prefix(Self.maximumGroups)
                 .map { GroupTotal(name: $0.name, totalSpent: Money.dollars($0.totalCents), transactionCount: $0.count) }
         }
 
         return TransactionLookup(
+            note: note,
             filtersApplied: filters,
             matchingTransactionCount: summary.count,
             totalSpent: Money.dollars(summary.totalCents),
             averagePerTransaction: Money.dollars(summary.averageCents),
-            largestTransaction: summary.largest.map(TransactionRecord.init),
-            smallestTransaction: summary.smallest.map(TransactionRecord.init),
-            earliestTransaction: summary.earliest.map(TransactionRecord.init),
-            mostRecentTransaction: summary.latest.map(TransactionRecord.init),
-            listedTransactions: listed.map(TransactionRecord.init),
-            groupTotals: groups
+            groupTotals: groups,
+            largestTransaction: grouped ? nil : summary.largest.map(TransactionRecord.init),
+            smallestTransaction: grouped ? nil : summary.smallest.map(TransactionRecord.init),
+            earliestTransaction: grouped ? nil : summary.earliest.map(TransactionRecord.init),
+            mostRecentTransaction: grouped ? nil : summary.latest.map(TransactionRecord.init),
+            listedTransactions: listed.map(TransactionRecord.init)
         )
     }
 }
@@ -102,18 +132,21 @@ nonisolated struct LookUpTransactionsTool: Tool {
     representNilExplicitlyInGeneratedContent: true
 )
 nonisolated struct TransactionLookup: Equatable, Sendable {
-    var filtersApplied: String
-    var matchingTransactionCount: Int
-    var totalSpent: Double
-    var averagePerTransaction: Double
-    var largestTransaction: TransactionRecord?
-    var smallestTransaction: TransactionRecord?
-    var earliestTransaction: TransactionRecord?
-    var mostRecentTransaction: TransactionRecord?
+    /// Something about the call worth knowing before answering from it.
+    var note: String? = nil
+    var filtersApplied: String = ""
+    var matchingTransactionCount: Int = 0
+    var totalSpent: Double = 0
+    var averagePerTransaction: Double = 0
+    /// Highest total first; empty unless a grouping was asked for. Ahead of
+    /// the single transactions, which are left out when it isn't empty.
+    var groupTotals: [GroupTotal] = []
+    var largestTransaction: TransactionRecord? = nil
+    var smallestTransaction: TransactionRecord? = nil
+    var earliestTransaction: TransactionRecord? = nil
+    var mostRecentTransaction: TransactionRecord? = nil
     /// In the order asked for; every match when there are only a few.
-    var listedTransactions: [TransactionRecord]
-    /// Highest total first; empty unless a grouping was asked for.
-    var groupTotals: [GroupTotal]
+    var listedTransactions: [TransactionRecord] = []
 }
 
 /// One transaction, as the model sees it.

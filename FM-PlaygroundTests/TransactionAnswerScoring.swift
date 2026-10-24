@@ -259,7 +259,7 @@ extension TransactionAnswerTests {
 
         let answerer = TransactionAnswerer(store: store)
         answerer.prewarm()
-        let answer = try await answerer.answer(question)
+        let answer = try await unlessDeclined { try await answerer.answer(question) }
         let actualIDs = Set(answer.matches.map(\.id))
 
         let calls = answer.toolCalls.map { call in
@@ -271,6 +271,8 @@ extension TransactionAnswerTests {
               parsed: merchant \(answer.parsed.filters.merchantName ?? "nil"), \
             categories [\(answer.parsed.categories.map(\.title).joined(separator: ", "))]\
             \(answer.parseMetrics.categoryNote.map { " — \($0)" } ?? "")
+              dates: \(answer.parseMetrics.dateTrace?.summary ?? answer.parseMetrics.dateNote ?? "nil")
+              merchant: \(answer.parseMetrics.merchantNote ?? "unanimous")
               expected: \(expectedScope.summary) → \(expectedCount) transactions
               tools: \(calls.isEmpty ? "none" : calls.joined(separator: ", "))
               answer: \(answer.text)

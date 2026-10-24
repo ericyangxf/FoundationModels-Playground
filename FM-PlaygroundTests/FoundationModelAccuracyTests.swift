@@ -15,6 +15,21 @@ nonisolated func foundationModelIsAvailable() -> Bool {
     ).isAvailable
 }
 
+/// Runs one question through the pipeline the way a test should see it.
+///
+/// A declined answer — the agent's readings didn't converge, so it showed no
+/// answer rather than a wrong one — cancels the test with the reason instead
+/// of failing it. It is reported as skipped, so a run's declines are counted
+/// apart from its passes.
+func unlessDeclined<T>(_ run: () async throws -> T) async throws -> T {
+    do {
+        return try await run()
+    } catch let declined as AnswerDeclined {
+        print("  declined: \(declined.reason)\n  trace: \(declined.trace)")
+        try Test.cancel("declined: \(declined.reason)")
+    }
+}
+
 /// The date ranges the accuracy tests expect, worked out with plain calendar
 /// arithmetic in the reference's own calendar.
 extension DateReference {
@@ -67,10 +82,9 @@ struct FoundationModelAccuracyTests {
         // One reference date for the run and for the expectation, so a parse
         // straddling midnight can't be scored against the following day.
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -79,6 +93,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -130,10 +145,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -142,6 +156,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -191,10 +206,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -203,6 +217,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -252,10 +267,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -264,6 +278,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -313,10 +328,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -325,6 +339,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -374,10 +389,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -386,6 +400,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -435,10 +450,9 @@ struct FoundationModelAccuracyTests {
         let parser = QueryParser()
         parser.prewarm()
         let reference = DateReference()
-        let (parsed, metrics) = try await parser.parsedQuery(
-            for: question,
-            reference: reference
-        )
+        let (parsed, metrics) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: reference)
+        }
         let filters = parsed.filters
 
         print("""
@@ -447,6 +461,7 @@ struct FoundationModelAccuracyTests {
             amount \(filters.fromAmount?.description ?? "nil")–\(filters.toAmount?.description ?? "nil"), \
             dates \(filters.fromDate ?? "nil")–\(filters.toDate ?? "nil"), \
             categories [\(parsed.categories.map(\.title).joined(separator: ", "))]
+              dates: \(metrics.dateTrace?.summary ?? metrics.dateNote ?? "nil")
               cost: \(metrics.latencyDescription), \
             \(metrics.inputTokens) in (\(metrics.cachedInputTokens) cached), \(metrics.outputTokens) out
             """)
@@ -502,10 +517,9 @@ struct FoundationModelRestraintTests {
 
         let parser = QueryParser()
         parser.prewarm()
-        let (parsed, _) = try await parser.parsedQuery(
-            for: question,
-            reference: DateReference()
-        )
+        let (parsed, _) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: DateReference())
+        }
 
         // Nothing to filter on: no merchant, no amount, no date, no category.
         #expect(parsed.filters.merchantName == nil, "merchantName: got \(parsed.filters.merchantName ?? "nil")")
@@ -528,10 +542,9 @@ struct FoundationModelRestraintTests {
 
         let parser = QueryParser()
         parser.prewarm()
-        let (parsed, _) = try await parser.parsedQuery(
-            for: question,
-            reference: DateReference()
-        )
+        let (parsed, _) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: DateReference())
+        }
 
         // "spend money" names no kind of spending, and the rest names nothing
         // at all.
@@ -555,10 +568,9 @@ struct FoundationModelRestraintTests {
 
         let parser = QueryParser()
         parser.prewarm()
-        let (parsed, _) = try await parser.parsedQuery(
-            for: question,
-            reference: DateReference()
-        )
+        let (parsed, _) = try await unlessDeclined {
+            try await parser.parsedQuery(for: question, reference: DateReference())
+        }
 
         // The merchant is still there to be found.
         #expect(

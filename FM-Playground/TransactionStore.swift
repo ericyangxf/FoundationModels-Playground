@@ -143,6 +143,15 @@ nonisolated struct TransactionScope: Equatable, Sendable {
         return Int((dollars * 100).rounded())
     }
 
+    /// The groupings these filters leave only one group in.
+    var fixedGroupings: Set<LookUpTransactionsTool.Grouping> {
+        var fixed: Set<LookUpTransactionsTool.Grouping> = []
+        if merchant != nil { fixed.insert(.merchant) }
+        if categories.count == 1 { fixed.insert(.category) }
+        if let fromDate, let toDate, fromDate.prefix(7) == toDate.prefix(7) { fixed.insert(.month) }
+        return fixed
+    }
+
     /// True when nothing narrows the statement at all.
     var isEverything: Bool {
         merchant == nil && categories.isEmpty && minimumCents == nil
