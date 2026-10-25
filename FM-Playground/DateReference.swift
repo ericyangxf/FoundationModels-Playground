@@ -41,23 +41,12 @@ struct DateReference {
         Self.weekday.weekdaySymbols[calendar.firstWeekday - 1]
     }
 
-    /// The date rules both filtering prompts share: today, and what the
-    /// phrases whose reading is a convention rather than arithmetic mean
-    /// here. The model does the working out.
+    /// What both filtering prompts tell the model about dates: today, and
+    /// which day weeks start on. How a phrase reads — the whole month or so
+    /// far, the calendar week or the last seven days — is left to the model.
+    /// A list of those conventions bled from one phrase into the next, and
+    /// most readings Gemma picks without one are ones a search can live with.
     var promptRules: String {
-        """
-        Today is \(todayDescription). Weeks start on \(firstWeekdayName).
-
-        Work out the dates the question's time words cover, from today, as a first and last day:
-        - "this week", "this month", "this year": all of it, through its last day.
-        - "so far this …", "since …", "from the beginning of …": from the start through today.
-        - "last week", "last month", "last year": all of the one before the current one.
-        - "the past N days", "the last N days": the N days ending today, today included.
-        - "the past N weeks", "months" or "years": from the same date N weeks, months or years \
-        ago through today. Without a number, N is 1.
-        - A month or year named on its own is all of it. A month named without a year is the \
-        most recent one that has begun.
-        - No time words at all: no dates.
-        """
+        "Today is \(todayDescription). Weeks start on \(firstWeekdayName)."
     }
 }

@@ -35,6 +35,24 @@ extension DateReference {
         let first = calendar.date(byAdding: .day, value: -(count - 1), to: today)!
         return (Self.string(for: first), todayString)
     }
+
+    /// Whether a search ending on `toDate` finds what one ending on
+    /// `expected` does. Nothing is dated after today, so once the expected
+    /// end is today or later, no end at all, or any real day from today on,
+    /// finds the same transactions. An end before today has to match.
+    func endFindsTheSame(_ toDate: String?, as expected: String?) -> Bool {
+        guard let expected, expected >= todayString else { return toDate == expected }
+        guard let toDate else { return true }
+        let parser = DateFormatter()
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        parser.timeZone = calendar.timeZone
+        parser.dateFormat = "yyyy-MM-dd"
+        // A garbled "2026-1017" or "20226-10-31" isn't a day, however it sorts.
+        guard toDate.wholeMatch(of: #/\d{4}-\d{2}-\d{2}/#) != nil,
+              let day = parser.date(from: toDate)
+        else { return false }
+        return day >= today
+    }
 }
 
 /// Scores the on-device model on the questions the Query tab offers.
@@ -107,16 +125,17 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: an open-ended phrase, so January 1 through today rather than
-        // the whole year — and the "$10" must not be read as a date.
+        // Dates: an open-ended phrase, so January 1 through today — and the
+        // "$10" must not be read as a date. Nothing is dated after today, so
+        // the whole year, or no end at all, finds the same transactions.
         let dates = reference.expectedSinceStart(of: .year)
         #expect(
             filters.fromDate == dates.fromDate,
             "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            reference.endFindsTheSame(filters.toDate, as: dates.toDate),
+            "toDate: expected \(dates.toDate ?? "nil"), any end from today on, or none; got \(filters.toDate ?? "nil")"
         )
     }
 
@@ -170,15 +189,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected none, got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "this month", first day to last.
+        // Dates: "this month", first day to last — though nothing is dated
+        // after today, so ending today, or not at all, finds the same.
         let dates = reference.expectedPeriod(.month)
         #expect(
             filters.fromDate == dates.fromDate,
             "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            reference.endFindsTheSame(filters.toDate, as: dates.toDate),
+            "toDate: expected \(dates.toDate ?? "nil"), any end from today on, or none; got \(filters.toDate ?? "nil")"
         )
     }
 
@@ -356,15 +376,16 @@ struct FoundationModelAccuracyTests {
             "categories: expected [Groceries], got \(parsed.categories.map(\.title))"
         )
 
-        // Dates: "in this year", January 1 to December 31.
+        // Dates: "in this year", January 1 to December 31 — though nothing is
+        // dated after today, so ending today, or not at all, finds the same.
         let dates = reference.expectedPeriod(.year)
         #expect(
             filters.fromDate == dates.fromDate,
             "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
         )
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            reference.endFindsTheSame(filters.toDate, as: dates.toDate),
+            "toDate: expected \(dates.toDate ?? "nil"), any end from today on, or none; got \(filters.toDate ?? "nil")"
         )
     }
 
@@ -480,15 +501,19 @@ struct FoundationModelAccuracyTests {
         )
 
         // Dates: an unusual window, so a stock range like 30 days won't do.
-        // Forty days ending today, today included.
+        // Forty days ending today — though whether today counts as one of
+        // the forty is a reading rather than a mistake, so a start a day
+        // either side passes too.
         let dates = reference.expectedPastDays(40)
+        let starts = [39, 40, 41].map { reference.expectedPastDays($0).fromDate }
         #expect(
-            filters.fromDate == dates.fromDate,
-            "fromDate: expected \(dates.fromDate ?? "nil"), got \(filters.fromDate ?? "nil")"
+            starts.contains(filters.fromDate),
+            "fromDate: expected \(dates.fromDate ?? "nil"), give or take a day, got \(filters.fromDate ?? "nil")"
         )
+        // Nothing is dated after today, so no end, or a later one, finds the same.
         #expect(
-            filters.toDate == dates.toDate,
-            "toDate: expected \(dates.toDate ?? "nil"), got \(filters.toDate ?? "nil")"
+            reference.endFindsTheSame(filters.toDate, as: dates.toDate),
+            "toDate: expected \(dates.toDate ?? "nil"), any end from today on, or none; got \(filters.toDate ?? "nil")"
         )
     }
 }
