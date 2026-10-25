@@ -49,7 +49,8 @@ nonisolated struct GemmaLanguageModel: LanguageModel {
             modelPath: modelPath,
             backend: .gpu,
             maxNumTokens: contextSize,
-            cacheDir: caches?.path
+            cacheDir: caches?.path,
+            activationDataType: .float32
         )
         executorConfiguration = GemmaExecutor.Configuration(
             engineConfig: engineConfig,
