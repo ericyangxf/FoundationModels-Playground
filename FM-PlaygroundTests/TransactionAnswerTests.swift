@@ -33,7 +33,7 @@ import Testing
 /// The statement date is fixed at 2026-10-06, so the expected answers hold no
 /// matter what day the suite runs.
 @MainActor
-@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable(), onDeviceModelMissing))
 struct TransactionAnswerTests {
     // MARK: - How much at a merchant
 

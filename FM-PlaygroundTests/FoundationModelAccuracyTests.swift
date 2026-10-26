@@ -12,6 +12,14 @@ nonisolated func onDeviceModelIsAvailable() -> Bool {
     OnDeviceModel.isOnDisk
 }
 
+/// What a skipped suite says. The file lives in the app's own data
+/// container, so a fresh install, or a new bundle ID, starts without it
+/// until the app downloads it or it's copied in.
+nonisolated let onDeviceModelMissing: Comment = """
+    No Gemma model at Library/Application Support/Models/gemma-4-E4B-it.litertlm \
+    in the app's data container: download it in the app, or copy it there
+    """
+
 /// The date ranges the accuracy tests expect, worked out with plain calendar
 /// arithmetic in the reference's own calendar.
 extension DateReference {
@@ -70,7 +78,7 @@ extension DateReference {
 /// Serialized on purpose. There is one on-device model, and seven parses racing
 /// each other measure the queue rather than the answer.
 @MainActor
-@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable(), onDeviceModelMissing))
 struct FoundationModelAccuracyTests {
     @Test("List my Starbucks transactions that above $10 from the beginning of this year")
     func starbucksAboveTenSinceJanuary() async throws {
@@ -521,7 +529,7 @@ struct FoundationModelAccuracyTests {
 /// The behaviour the two sessions are supposed to have on top of the examples:
 /// a question with nothing in it comes back empty rather than invented.
 @MainActor
-@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable()))
+@Suite(.serialized, .enabled(if: onDeviceModelIsAvailable(), onDeviceModelMissing))
 struct FoundationModelRestraintTests {
     @Test("Show me everything")
     func showMeEverything() async throws {
